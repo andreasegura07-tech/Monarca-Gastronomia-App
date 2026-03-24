@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0d0b08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Monarca">
+<title>Monarca Gastronomía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#C9963A;--gold-light:#E8B86D;--gold-dim:rgba(201,150,58,0.15);--bg:#0d0b08;--bg3:#1a1710;--cream:#F2EBD9;--cream-dim:rgba(242,235,217,0.55);--nav-h:68px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300;overscroll-behavior:none}
+.screen{display:none;flex-direction:column;height:calc(100dvh - var(--nav-h));overflow-y:auto}
+.screen.active{display:flex}
+nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(13,11,8,.97);border-top:1px solid rgba(201,150,58,.2);display:flex;backdrop-filter:blur(16px);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:rgba(242,235,217,.35);transition:color .25s;font-family:'Jost',sans-serif;font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase}
+nav button.active{color:var(--gold)}
+nav button svg{width:22px;height:22px;stroke-width:1.4}
+nav button.active svg{filter:drop-shadow(0 0 6px rgba(201,150,58,.5))}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:2px}
+.display{font-family:'Cormorant Garamond',serif}
+
+/* HOME */
+#home{background:var(--bg);padding-bottom:20px}
+.hero{position:relative;min-height:56vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:40px 24px 50px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(201,150,58,.18) 0%,transparent 70%),linear-gradient(180deg,#0d0b08 0%,#1a1308 100%)}
+.wing{position:absolute;opacity:.06;fill:var(--gold)}
+.wing-l{transform:translateX(-40%) rotate(-15deg) scale(2.2)}
+.wing-r{transform:translateX(40%) rotate(15deg) scale(2.2) scaleX(-1)}
+.hero-divider{width:1px;height:60px;background:linear-gradient(to bottom,transparent,var(--gold),transparent);margin-bottom:18px;position:relative;z-index:1}
+.hero-sub{font-size:10px;font-weight:500;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;position:relative;z-index:1}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,14vw,76px);font-weight:300;line-height:.9;text-align:center;color:var(--cream);position:relative;z-index:1}
+.hero-title em{font-style:italic;color:var(--gold-light);display:block}
+.hero-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--cream-dim);margin-top:18px;position:relative;z-index:1;text-align:center}
+.home-cards{padding:0 20px 10px;display:flex;flex-direction:column;gap:14px}
+.home-card{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:22px 20px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:border-color .25s;position:relative;overflow:hidden}
+.home-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);transform:scaleY(0);transition:transform .3s;transform-origin:bottom}
+.home-card:active{background:rgba(201,150,58,.08);border-color:rgba(201,150,58,.35)}
+.home-card:active::before{transform:scaleY(1)}
+.card-icon{width:46px;height:46px;flex-shrink:0;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold)}
+.card-icon svg{width:22px;height:22px;stroke-width:1.4}
+.card-text h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--cream)}
+.card-text p{font-size:12px;color:var(--cream-dim);margin-top:3px}
+.home-hours{margin:10px 20px 0;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:18px 20px}
+.home-hours h4{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;font-weight:400}
+.hours-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.hours-row:last-child{border-bottom:none}
+.hours-row span:last-child{color:var(--cream-dim)}
+
+/* MENU */
+#menu{background:var(--bg)}
+.screen-header{padding:32px 24px 20px;background:var(--bg);border-bottom:1px solid rgba(201,150,58,.1);flex-shrink:0}
+.screen-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream);line-height:1}
+.screen-header .display em{font-style:italic;color:var(--gold-light)}
+.screen-header p{font-size:12px;color:var(--cream-dim);margin-top:6px;letter-spacing:.05em}
+.cat-tabs{display:flex;gap:8px;padding:14px 20px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{white-space:nowrap;padding:7px 16px;border:1px solid rgba(201,150,58,.25);border-radius:20px;background:none;color:var(--cream-dim);cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transition:all .2s}
+.cat-tab.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:500}
+.menu-list{flex:1;overflow-y:auto;padding:6px 20px 20px}
+.menu-section{display:none}
+.menu-section.active{display:block}
+.menu-item{border-bottom:1px solid rgba(255,255,255,.06);padding:18px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.menu-item:last-child{border-bottom:none}
+.item-info h4{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--cream)}
+.item-info p{font-size:12px;color:var(--cream-dim);margin-top:4px;line-height:1.5;max-width:240px}
+.item-info .tag{display:inline-block;margin-top:7px;padding:2px 8px;border:1px solid rgba(201,150,58,.3);border-radius:10px;font-size:10px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.item-price{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);white-space:nowrap;font-weight:300;padding-top:2px}
+
+/* RESERVAR */
+#reservar{background:var(--bg);padding:32px 24px;gap:0}
+.reserve-header{margin-bottom:28px}
+.reserve-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream)}
+.reserve-header .display em{font-style:italic;color:var(--gold-light)}
+.reserve-header p{font-size:13px;color:var(--cream-dim);margin-top:8px;line-height:1.6}
+.form-group{margin-bottom:18px}
+label{display:block;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+input,select,textarea{width:100%;background:var(--bg3);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:15px;font-weight:300;padding:13px 16px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9963A' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:none;height:80px}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) saturate(3) hue-rotate(5deg);opacity:.5}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn-reserve{width:100%;margin-top:6px;background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s}
+.btn-reserve:active{background:var(--gold-light);transform:scale(.98)}
+.btn-reserve svg{width:20px;height:20px;fill:var(--bg)}
+.reserve-note{margin-top:16px;padding:14px 16px;background:var(--gold-dim);border-left:2px solid var(--gold);border-radius:0 2px 2px 0;font-size:12px;color:var(--cream-dim);line-height:1.6}
+
+/* LEALTAD */
+#lealtad{background:var(--bg);padding:32px 24px;gap:0}
+.loyalty-header{margin-bottom:26px}
+.loyalty-header .display{font-size:clamp(34px,9vw,46px);font-weight:300;color:var(--cream)}
+.loyalty-header .display em{font-style:italic;color:var(--gold-light)}
+#loyalty-register{display:flex;flex-direction:column;gap:16px}
+#loyalty-register p{font-size:13px;color:var(--cream-dim);line-height:1.6}
+.btn-gold{background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:14px 20px;transition:background .2s,transform .15s}
+.btn-gold:active{background:var(--gold-light);transform:scale(.98)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-outline{background:none;color:var(--cream-dim);border:1px solid rgba(255,255,255,.15);border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:13px 20px;transition:border-color .2s;margin-top:4px}
+.btn-outline:active{border-color:var(--gold);color:var(--gold)}
+#loyalty-card{display:none;flex-direction:column;gap:20px}
+.loyalty-card-visual{background:linear-gradient(135deg,#1a1308 0%,#2a1e08 50%,#1a1308 100%);border:1px solid rgba(201,150,58,.35);border-radius:6px;padding:26px 22px;position:relative;overflow:hidden}
+.lc-bg-wings{position:absolute;right:-20px;top:-20px;opacity:.05;width:160px;height:160px}
+.lc-label{font-size:9px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.lc-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--cream)}
+.lc-phone{font-size:12px;color:var(--cream-dim);margin-top:2px}
+.lc-divider{height:1px;background:rgba(201,150,58,.2);margin:18px 0}
+.lc-points-row{display:flex;align-items:flex-end;gap:8px}
+.lc-pts-num{font-family:'Cormorant Garamond',serif;font-size:52px;line-height:1;color:var(--gold)}
+.lc-pts-label{font-size:11px;color:var(--cream-dim);margin-bottom:8px;letter-spacing:.1em}
+.lc-tier{display:inline-block;margin-top:12px;padding:4px 12px;background:rgba(201,150,58,.15);border:1px solid rgba(201,150,58,.35);border-radius:12px;font-size:11px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.prog-bar-wrap{background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:18px}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--cream-dim);margin-bottom:10px}
+.prog-label strong{color:var(--gold)}
+.prog-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-next{font-size:11px;color:var(--cream-dim);margin-top:8px;text-align:right}
+.rewards-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--cream);margin-bottom:4px}
+.rewards-list{display:flex;flex-direction:column;gap:10px}
+.reward-item{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:14px 16px}
+.reward-item.earned{border-color:rgba(201,150,58,.4)}
+.reward-badge{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.04)}
+.reward-item.earned .reward-badge{background:var(--gold-dim)}
+.reward-info{flex:1}
+.reward-info h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--cream)}
+.reward-info p{font-size:11px;color:var(--cream-dim);margin-top:2px}
+.reward-pts{font-size:13px;color:var(--gold);white-space:nowrap}
+.reward-item.earned .reward-pts{font-size:11px}
+.btn-logout{background:none;border:none;color:rgba(242,235,217,.2);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;text-align:right;padding:4px 0}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-toggle{font-size:12px;color:var(--cream-dim);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:center}
+
+/* INFO */
+#info{background:var(--bg);padding:32px 24px;gap:0}
+.info-header{margin-bottom:28px}
+.info-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream)}
+.info-header .display em{font-style:italic;color:var(--gold-light)}
+.info-block{background:var(--bg3);border:1px solid rgba(201,150,58,.12);border-radius:2px;padding:20px;margin-bottom:14px}
+.info-block h4{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.info-row{display:flex;gap:12px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-row svg{width:16px;height:16px;flex-shrink:0;color:var(--gold);margin-top:1px;stroke-width:1.5}
+.info-row span{color:var(--cream-dim);line-height:1.5}
+.info-row a{color:var(--cream-dim);text-decoration:none}
+.btn-wa{width:100%;background:#25D366;color:#fff;border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s}
+.btn-wa:active{background:#1da851;transform:scale(.98)}
+.btn-wa svg{width:20px;height:20px;fill:white}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--bg);padding:11px 22px;border-radius:2px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:normal;text-align:center;max-width:90vw;z-index:200}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.error{background:#8B3A2A;color:var(--cream)}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashOut .5s ease 2s forwards}
+@keyframes splashOut{to{opacity:0;pointer-events:none}}
+.splash-title{font-family:'Cormorant Garamond',serif;font-size:58px;font-weight:300;color:var(--cream);text-align:center;line-height:.9}
+.splash-title em{font-style:italic;color:var(--gold-light);display:block}
+.splash-sub{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-top:18px}
+.splash-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:22px;animation:widen 1.5s ease forwards}
+@keyframes widen{from{width:0;opacity:0}to{width:80px;opacity:1}}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-title">Monarca<em>Gastronomía</em></div>
+  <div class="splash-sub">Escazú, Costa Rica</div>
+  <div class="splash-line"></div>
+</div>
+
+<!-- HOME -->
+<section id="home" class="screen active">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <svg class="wing wing-l" viewBox="0 0 200 200"><path d="M100,100 C80,60 20,40 10,80 C0,120 60,160 100,100Z M100,100 C80,140 30,160 20,130 C10,100 50,70 100,100Z"/></svg>
+    <svg class="wing wing-r" viewBox="0 0 200 200"><path d="M100,100 C80,60 20,40 10,80 C0,120 60,160 100,100Z M100,100 C80,140 30,160 20,130 C10,100 50,70 100,100Z"/></svg>
+    <div class="hero-divider"></div>
+    <div class="hero-sub">Bienvenidos a</div>
+    <h1 class="hero-title">Monarca<em>Gastronomía</em></h1>
+    <p class="hero-tagline">Una experiencia culinaria única en Escazú</p>
+  </div>
+  <div class="home-cards">
+    <div class="home-card" onclick="goTo('menu')">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
+      <div class="card-text"><h3>Menú</h3><p>Descubrí nuestros platillos y propuesta gastronómica</p></div>
+    </div>
+    <div class="home-card" onclick="goTo('reservar')">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <div class="card-text"><h3>Reservar Mesa</h3><p>Asegurá tu espacio para una experiencia inolvidable</p></div>
+    </div>
+    <div class="home-card" onclick="goTo('lealtad')">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="card-text"><h3>Plan de Lealtad</h3><p>Acumulá puntos y ganás beneficios exclusivos</p></div>
+    </div>
+  </div>
+  <div class="home-hours">
+    <h4>Horarios</h4>
+    <div class="hours-row"><span>Lunes – Jueves</span><span>12:00 – 22:00</span></div>
+    <div class="hours-row"><span>Viernes – Sábado</span><span>12:00 – 23:00</span></div>
+    <div class="hours-row"><span>Domingo</span><span>12:00 – 21:00</span></div>
+  </div>
+</section>
+
+<!-- MENU -->
+<section id="menu" class="screen">
+  <div class="screen-header"><div class="display">Nuestro<em>Menú</em></div><p>Ingredientes frescos · Sabores auténticos</p></div>
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="switchCat('entradas',this)">Entradas</button>
+    <button class="cat-tab" onclick="switchCat('principales',this)">Principales</button>
+    <button class="cat-tab" onclick="switchCat('postres',this)">Postres</button>
+    <button class="cat-tab" onclick="switchCat('bebidas',this)">Bebidas</button>
+  </div>
+  <div class="menu-list">
+    <div id="cat-entradas" class="menu-section active">
+      <div class="menu-item"><div class="item-info"><h4>Ceviche de Mariposa</h4><p>Corvina fresca, leche de tigre, maíz tostado y aguacate</p><span class="tag">Signature</span></div><div class="item-price">₡7.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tataki de Atún</h4><p>Atún sellado, salsa ponzu, jengibre encurtido y ajonjolí</p></div><div class="item-price">₡9.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bruschetta Monarca</h4><p>Pan artesanal, tomates cherry, prosciutto y reducción balsámica</p></div><div class="item-price">₡5.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sopa de Tomate Asado</h4><p>Tomate San Marzano, crema de coco y albahaca fresca</p><span class="tag">Vegetariano</span></div><div class="item-price">₡4.500</div></div>
+    </div>
+    <div id="cat-principales" class="menu-section">
+      <div class="menu-item"><div class="item-info"><h4>Lomo de Res al Carbón</h4><p>200g de res nacional, mantequilla de hierbas y papas rústicas</p><span class="tag">Chef Recomienda</span></div><div class="item-price">₡18.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Filete de Dorado</h4><p>Dorado fresco del Pacífico, salsa de maracuyá y arroz con coco</p></div><div class="item-price">₡15.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Risotto de Hongos</h4><p>Portobello, porcini y shiitake, parmesano reggiano y trufa negra</p><span class="tag">Vegetariano</span></div><div class="item-price">₡13.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pollo en Mole Negro</h4><p>Pechuga de pollo de granja, mole artesanal y tortillas de maíz azul</p></div><div class="item-price">₡14.000</div></div>
+    </div>
+    <div id="cat-postres" class="menu-section">
+      <div class="menu-item"><div class="item-info"><h4>Fondant de Chocolate</h4><p>Corazón de chocolate 70%, helado de vainilla bourbon</p><span class="tag">Signature</span></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tres Leches Monarca</h4><p>Versión propia del clásico, con crema de café y nuez caramelizada</p></div><div class="item-price">₡4.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tarta de Maracuyá</h4><p>Crema de maracuyá, base de galleta y merengue italiano</p></div><div class="item-price">₡4.500</div></div>
+    </div>
+    <div id="cat-bebidas" class="menu-section">
+      <div class="menu-item"><div class="item-info"><h4>Cóctel Mariposa Azul</h4><p>Gin, flor de Jamaica, limón y agua tónica</p><span class="tag">Firma</span></div><div class="item-price">₡6.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Agua de Jamaica</h4><p>Flor de Jamaica local, jengibre y naranja</p><span class="tag">Sin alcohol</span></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Vino de la Casa</h4><p>Selección del sommelier · Copa</p></div><div class="item-price">₡4.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Café de Especialidad</h4><p>Café costarricense de altura, V60 o espresso</p></div><div class="item-price">₡2.200</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- RESERVAR -->
+<section id="reservar" class="screen">
+  <div class="reserve-header"><div class="display">Reservar<em>Mesa</em></div><p>Completá el formulario y te contactaremos por WhatsApp para confirmar.</p></div>
+  <div class="form-row">
+    <div class="form-group"><label>Nombre</label><input type="text" id="res-name" placeholder="Tu nombre"></div>
+    <div class="form-group"><label>Personas</label>
+      <select id="res-people"><option>1 persona</option><option selected>2 personas</option><option>3 personas</option><option>4 personas</option><option>5 personas</option><option>6 personas</option><option>7 o más</option></select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Fecha</label><input type="date" id="res-date"></div>
+    <div class="form-group"><label>Hora</label>
+      <select id="res-time"><option>12:00</option><option>12:30</option><option>13:00</option><option>13:30</option><option>14:00</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>21:30</option></select>
+    </div>
+  </div>
+  <div class="form-group"><label>Solicitudes especiales (opcional)</label><textarea id="res-notes" placeholder="Alergias, ocasión especial, preferencias…"></textarea></div>
+  <button class="btn-reserve" onclick="sendReserve()">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.262 2 2 6.262 2 11.5c0 1.86.518 3.6 1.42 5.079L2 22l5.567-1.394A9.45 9.45 0 0011.5 21c5.238 0 9.5-4.262 9.5-9.5S16.738 2 11.5 2z"/></svg>
+    Enviar por WhatsApp
+  </button>
+  <div class="reserve-note">📍 <strong>Monarca Gastronomía</strong> · Escazú<br>Confirmación al <strong>+506 8955-1717</strong></div>
+</section>
+
+<!-- LEALTAD -->
+<section id="lealtad" class="screen">
+  <div class="loyalty-header"><div class="display">Plan de<em>Lealtad</em></div></div>
+  <div id="loyalty-register">
+    <p id="loyalty-form-desc">Registrate con tu nombre y teléfono. Acumulá 100 puntos por cada visita y canjeá beneficios exclusivos en Monarca.</p>
+    <div class="form-group" id="name-group"><label>Nombre completo</label><input type="text" id="loyalty-name-input" placeholder="Nombre y apellido"></div>
+    <div class="form-group"><label>Teléfono (WhatsApp)</label><input type="tel" id="loyalty-phone-input" placeholder="8888-8888" maxlength="12"></div>
+    <button class="btn-gold" id="btn-register" onclick="handleLoyaltySubmit()">Registrarme</button>
+    <div class="login-toggle" onclick="toggleLoginMode()">¿Ya tengo cuenta? Iniciar sesión</div>
+  </div>
+  <div id="loyalty-card">
+    <div class="loyalty-card-visual">
+      <svg class="lc-bg-wings" viewBox="0 0 200 200" fill="rgba(201,150,58,1)"><path d="M100,100 C80,60 20,40 10,80 C0,120 60,160 100,100Z M100,100 C80,140 30,160 20,130 C10,100 50,70 100,100Z M100,100 C120,60 180,40 190,80 C200,120 140,160 100,100Z M100,100 C120,140 170,160 180,130 C190,100 150,70 100,100Z"/></svg>
+      <div class="lc-label">Miembro</div>
+      <div class="lc-name" id="lc-name-display">—</div>
+      <div class="lc-phone" id="lc-phone-display">—</div>
+      <div class="lc-divider"></div>
+      <div class="lc-points-row"><div class="lc-pts-num" id="lc-pts-display">0</div><div class="lc-pts-label">puntos</div></div>
+      <div class="lc-tier" id="lc-tier-display">Mariposa Bronce</div>
+    </div>
+    <div class="prog-bar-wrap">
+      <div class="prog-label"><span>Progreso</span><strong id="prog-pct">0%</strong></div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-next" id="prog-next-label"></div>
+    </div>
+    <div class="rewards-title">Recompensas</div>
+    <div class="rewards-list" id="rewards-list"></div>
+    <button class="btn-logout" onclick="logoutLoyalty()">Cerrar sesión</button>
+  </div>
+</section>
+
+<!-- INFO -->
+<section id="info" class="screen">
+  <div class="info-header"><div class="display">Contacto<em>e Info</em></div></div>
+  <div class="info-block">
+    <h4>Horarios</h4>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Lun–Jue: 12:00 – 22:00</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Vie–Sáb: 12:00 – 23:00</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Dom: 12:00 – 21:00</span></div>
+  </div>
+  <div class="info-block">
+    <h4>Ubicación</h4>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Escazú, San José · Costa Rica</span></div>
+  </div>
+  <div class="info-block">
+    <h4>Contacto</h4>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.92 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.84 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l.98-.98a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span><a href="tel:+50689551717">+506 8955-1717</a></span></div>
+  </div>
+  <button class="btn-wa" onclick="openWhatsApp('Hola! Me gustaría obtener más información sobre Monarca Gastronomía.')">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.262 2 2 6.262 2 11.5c0 1.86.518 3.6 1.42 5.079L2 22l5.567-1.394A9.45 9.45 0 0011.5 21c5.238 0 9.5-4.262 9.5-9.5S16.738 2 11.5 2z"/></svg>
+    Escribinos por WhatsApp
+  </button>
+</section>
+
+<nav>
+  <button class="active" id="nav-home" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</button>
+  <button id="nav-menu" onclick="goTo('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Menú</button>
+  <button id="nav-reservar" onclick="goTo('reservar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Reservar</button>
+  <button id="nav-lealtad" onclick="goTo('lealtad')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Lealtad</button>
+  <button id="nav-info" onclick="goTo('info')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Info</button>
+</nav>
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://senxzuisgjrhcnvbtvcy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ToL3k4BIlB01j7DXVRGbRQ_VrSasECS';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const WA = '50689551717';
+
+const REWARDS = [
+  {pts:500, emoji:'☕', label:'Café de Especialidad', desc:'Un café cortesía de la casa'},
+  {pts:1000,emoji:'🥗', label:'Entrada Gratis',       desc:'Cualquier entrada del menú'},
+  {pts:1500,emoji:'🍷', label:'Copa de Vino',         desc:'Selección del sommelier'},
+  {pts:2500,emoji:'🎂', label:'Postre de Cumpleaños', desc:'En tu mes de cumpleaños'},
+  {pts:5000,emoji:'👑', label:'Cena para Dos',        desc:'Experiencia premium exclusiva'},
+];
+const TIERS=[{min:0,label:'Mariposa Bronce',next:500},{min:500,label:'Mariposa Plata',next:1500},{min:1500,label:'Mariposa Oro',next:5000},{min:5000,label:'Mariposa Élite',next:null}];
+
+let loginMode=false;
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  document.getElementById(id).scrollTop=0;
+}
+function switchCat(cat,el){
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cat-'+cat).classList.add('active');
+}
+function sendReserve(){
+  const name=document.getElementById('res-name').value.trim();
+  const date=document.getElementById('res-date').value;
+  const time=document.getElementById('res-time').value;
+  const people=document.getElementById('res-people').value;
+  const notes=document.getElementById('res-notes').value.trim();
+  if(!name||!date){showToast('Completá nombre y fecha',true);return;}
+  const ds=new Date(date+'T12:00').toLocaleDateString('es-CR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  let msg=`Hola Monarca Gastronomía! 🦋\n\nReserva:\n👤 ${name}\n📅 ${ds}\n🕐 ${time}\n👥 ${people}`;
+  if(notes) msg+=`\n📝 ${notes}`;
+  openWhatsApp(msg);
+}
+function openWhatsApp(msg){window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');}
+
+function toggleLoginMode(){
+  loginMode=!loginMode;
+  document.getElementById('btn-register').textContent=loginMode?'Entrar a mi cuenta':'Registrarme';
+  document.querySelector('.login-toggle').textContent=loginMode?'¿No tengo cuenta? Registrarme':'¿Ya tengo cuenta? Iniciar sesión';
+  document.getElementById('loyalty-form-desc').textContent=loginMode?'Ingresá tu teléfono para acceder a tus puntos.':'Registrate con tu nombre y teléfono. Acumulá 100 puntos por cada visita.';
+  document.getElementById('name-group').style.display=loginMode?'none':'block';
+}
+
+async function handleLoyaltySubmit(){
+  const phone=document.getElementById('loyalty-phone-input').value.trim().replace(/\D/g,'');
+  if(!phone||phone.length<8){showToast('Ingresá un teléfono válido',true);return;}
+  if(loginMode){await doLogin(phone);}
+  else{
+    const name=document.getElementById('loyalty-name-input').value.trim();
+    if(!name){showToast('Ingresá tu nombre',true);return;}
+    await doRegister(name,phone);
+  }
+}
+
+async function doRegister(name,phone){
+  setLoading(true);
+  const{data:ex}=await db.from('clientes').select('id').eq('telefono',phone).maybeSingle();
+  if(ex){showToast('Ese teléfono ya está registrado. Iniciá sesión.',true);setLoading(false);return;}
+  const{data,error}=await db.from('clientes').insert([{nombre:name,telefono:phone,puntos:100,visitas:1}]).select().single();
+  setLoading(false);
+  if(error){showToast('Error al registrar. Verificá que la tabla existe.',true);console.error(error);return;}
+  localStorage.setItem('monarca_phone',phone);
+  showToast(`¡Bienvenido/a ${name.split(' ')[0]}! +100 puntos 🦋`);
+  renderCard(data);
+}
+
+async function doLogin(phone){
+  setLoading(true);
+  const{data,error}=await db.from('clientes').select('*').eq('telefono',phone).maybeSingle();
+  setLoading(false);
+  if(!data){showToast('No encontramos esa cuenta.',true);return;}
+  localStorage.setItem('monarca_phone',phone);
+  showToast(`¡Hola de nuevo, ${data.nombre.split(' ')[0]}! 🦋`);
+  renderCard(data);
+}
+
+function logoutLoyalty(){
+  localStorage.removeItem('monarca_phone');
+  document.getElementById('loyalty-card').style.display='none';
+  document.getElementById('loyalty-register').style.display='flex';
+  document.getElementById('loyalty-name-input').value='';
+  document.getElementById('loyalty-phone-input').value='';
+  if(loginMode) toggleLoginMode();
+}
+
+function renderCard(data){
+  document.getElementById('loyalty-register').style.display='none';
+  document.getElementById('loyalty-card').style.display='flex';
+  const pts=data.puntos;
+  document.getElementById('lc-name-display').textContent=data.nombre;
+  document.getElementById('lc-phone-display').textContent='+506 '+data.telefono;
+  document.getElementById('lc-pts-display').textContent=pts.toLocaleString();
+  const tier=[...TIERS].reverse().find(t=>pts>=t.min);
+  document.getElementById('lc-tier-display').textContent=tier.label;
+  if(tier.next){
+    const pct=Math.min(100,Math.round(((pts-tier.min)/(tier.next-tier.min))*100));
+    document.getElementById('prog-fill').style.width=pct+'%';
+    document.getElementById('prog-pct').textContent=pct+'%';
+    document.getElementById('prog-next-label').textContent=`Faltan ${tier.next-pts} puntos para el siguiente nivel`;
+  }else{
+    document.getElementById('prog-fill').style.width='100%';
+    document.getElementById('prog-pct').textContent='100%';
+    document.getElementById('prog-next-label').textContent='¡Sos miembro Élite! 🦋';
+  }
+  document.getElementById('rewards-list').innerHTML=REWARDS.map(r=>{
+    const earned=pts>=r.pts;
+    return `<div class="reward-item ${earned?'earned':''}"><div class="reward-badge">${r.emoji}</div><div class="reward-info"><h4>${r.label}</h4><p>${r.desc}</p></div><div class="reward-pts">${earned?'✓ Canjeá':r.pts.toLocaleString()+' pts'}</div></div>`;
+  }).join('');
+}
+
+function setLoading(on){
+  const btn=document.getElementById('btn-register');
+  btn.disabled=on;
+  btn.innerHTML=on?'<span class="spinner"></span>Cargando…':(loginMode?'Entrar a mi cuenta':'Registrarme');
+}
+
+let toastTimer;
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(isError?' error':'');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='',3200);
+}
+
+// Auto-login
+const savedPhone=localStorage.getItem('monarca_phone');
+if(savedPhone){
+  db.from('clientes').select('*').eq('telefono',savedPhone).maybeSingle().then(({data})=>{
+    if(data)renderCard(data);else localStorage.removeItem('monarca_phone');
+  });
+}
+
+const today=new Date().toISOString().split('T')[0];
+document.getElementById('res-date').min=today;
+document.getElementById('res-date').value=today;
+setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove();},2600);
+</script>
+</body>
+</html>
