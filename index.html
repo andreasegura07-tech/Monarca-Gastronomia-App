@@ -11,63 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── CONSUMO ──
-let currentUser = null;
 
-function calcPtsPreview() {
-  const total = parseInt(document.getElementById('factura-total').value) || 0;
-  const pts = Math.floor(total / 1000) * 10;
-  const preview = document.getElementById('pts-preview');
-  if (total >= 1000) {
-    document.getElementById('pts-preview-num').textContent = pts.toLocaleString();
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
-  }
-}
-
-async function registrarConsumo() {
-  if (!currentUser) return;
-  const numFactura = document.getElementById('factura-num').value.trim();
-  const total = parseInt(document.getElementById('factura-total').value) || 0;
-  if (!numFactura) { showToast('Ingresá el número de factura', true); return; }
-  if (total < 1000) { showToast('El total mínimo es ₡1.000', true); return; }
-  const pts = Math.floor(total / 1000) * 10;
-  const btn = document.getElementById('btn-consumo');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Verificando…';
-
-  const { data: existing } = await db.from('facturas').select('id').eq('numero', numFactura).maybeSingle();
-  if (existing) {
-    showToast('Esa factura ya fue registrada anteriormente.', true);
-    btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos'; return;
-  }
-
-  const { error: factError } = await db.from('facturas').insert([{
-    numero: numFactura, cliente_id: currentUser.id, total: total, puntos: pts
-  }]);
-  if (factError) {
-    showToast('Error al registrar factura.', true);
-    btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos'; return;
-  }
-
-  const newPts = currentUser.puntos + pts;
-  const newVisits = (currentUser.visitas || 1) + 1;
-  const { data: updated, error: updError } = await db
-    .from('clientes').update({ puntos: newPts, visitas: newVisits })
-    .eq('id', currentUser.id).select().single();
-
-  btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos';
-  if (updError) { showToast('Error actualizando puntos.', true); return; }
-
-  currentUser = updated;
-  document.getElementById('factura-num').value = '';
-  document.getElementById('factura-total').value = '';
-  document.getElementById('pts-preview').style.display = 'none';
-  showToast('+' + pts + ' puntos! Factura #' + numFactura + ' registrada ✓');
-  renderCard(updated);
-  loadHistorial();
-}
 
 async function loadHistorial() {
   if (!currentUser) return;
@@ -234,28 +178,27 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
 .splash-line{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:20px;animation:widen 1.6s ease .3s forwards}
 @keyframes widen{to{width:80px}}
 
-.consumo-box{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:18px;margin-top:4px}
-.consumo-box h4{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream);margin-bottom:4px}
-.consumo-box p{font-size:16px;color:var(--cream-dim);margin-bottom:14px;line-height:1.5}
-.consumo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.pts-preview{background:var(--gold-dim);border:1px solid rgba(201,150,58,.25);border-radius:2px;padding:12px;text-align:center;margin-bottom:12px}
-.pts-preview .pts-big{font-family:'Cormorant Garamond',serif;font-size:38px;color:var(--gold);line-height:1}
-.pts-preview .pts-sub{font-size:13px;color:var(--cream-dim);margin-top:2px}
-.btn-consumo{width:100%;background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:16px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:13px;transition:background .2s,transform .15s}
-.btn-consumo:active{background:var(--gold-light);transform:scale(.98)}
-.btn-consumo:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.historial-title{font-size:14px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px}
-.historial-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:16px}
-.historial-item:last-child{border-bottom:none}
-.h-num{color:var(--cream-dim)}
-.h-pts{color:var(--gold)}
-.historial-empty{font-size:16px;color:var(--cream-faint);text-align:center;padding:12px 0}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .qr-box{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:16px;text-align:center}
 .qr-box h4{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--cream);margin-bottom:4px}
 .qr-box p{font-size:13px;color:var(--cream-dim);margin-bottom:14px;line-height:1.5}
 .qr-canvas-wrap{background:white;border-radius:4px;padding:10px;display:inline-block}
-.qr-canvas-wrap canvas{display:block}
 .qr-hint{font-size:12px;color:var(--cream-dim);margin-top:10px}
 </style>
 </head>
@@ -605,31 +548,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
     <div class="qr-box">
       <h4>Mi Código QR</h4>
       <p>Mostráselo al cajero al momento de pagar para acumular tus puntos.</p>
-      <div class="qr-canvas-wrap"><canvas id="qr-canvas"></canvas></div>
+      <div class="qr-canvas-wrap"><img id="qr-img" src="" alt="QR" style="width:180px;height:180px;display:block"></div>
       <div class="qr-hint">El cajero lo escanea y registra tus puntos</div>
     </div>
-    <div class="consumo-box">
-      <h4>Registrar Consumo</h4>
-      <p>Ingresá el número de factura y el total pagado. Cada factura solo puede registrarse una vez.</p>
-      <div class="consumo-row">
-        <div class="form-group" style="margin-bottom:0">
-          <label>Nº de Factura</label>
-          <input type="text" id="factura-num" placeholder="ej. 00123" style="font-size:15px;padding:10px 12px">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label>Total (₡)</label>
-          <input type="number" id="factura-total" placeholder="ej. 15000" min="1000" style="font-size:15px;padding:10px 12px" oninput="calcPtsPreview()">
-        </div>
-      </div>
-      <div class="pts-preview" id="pts-preview" style="display:none">
-        <div class="pts-big" id="pts-preview-num">0</div>
-        <div class="pts-sub">puntos a ganar · 10 pts por cada ₡1.000</div>
-      </div>
-      <button class="btn-consumo" id="btn-consumo" onclick="registrarConsumo()">Registrar y Ganar Puntos</button>
-      <div class="historial-title">Últimas Facturas Registradas</div>
-      <div id="historial-list"><div class="historial-empty">Sin registros aún</div></div>
-    </div>
-
     <button class="btn-logout" onclick="logoutLoyalty()">Cerrar sesión</button>
   </div>
 </section>
@@ -748,7 +669,6 @@ async function doRegister(name,phone,email){
   showToast(`¡Bienvenido/a ${name.split(' ')[0]}! +100 puntos 🦋`);
   currentUser=data;
   renderCard(data);
-  loadHistorial();
 }
 
 async function doLogin(phone){
@@ -760,7 +680,6 @@ async function doLogin(phone){
   showToast(`¡Hola de nuevo, ${data.nombre.split(' ')[0]}! 🦋`);
   currentUser=data;
   renderCard(data);
-  loadHistorial();
 }
 
 function logoutLoyalty(){
@@ -819,63 +738,7 @@ document.getElementById('res-date').min=today;
 document.getElementById('res-date').value=today;
 setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove();},2800);
 
-// ── CONSUMO ──
-let currentUser = null;
 
-function calcPtsPreview() {
-  const total = parseInt(document.getElementById('factura-total').value) || 0;
-  const pts = Math.floor(total / 1000) * 10;
-  const preview = document.getElementById('pts-preview');
-  if (total >= 1000) {
-    document.getElementById('pts-preview-num').textContent = pts.toLocaleString();
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
-  }
-}
-
-async function registrarConsumo() {
-  if (!currentUser) return;
-  const numFactura = document.getElementById('factura-num').value.trim();
-  const total = parseInt(document.getElementById('factura-total').value) || 0;
-  if (!numFactura) { showToast('Ingresá el número de factura', true); return; }
-  if (total < 1000) { showToast('El total mínimo es ₡1.000', true); return; }
-  const pts = Math.floor(total / 1000) * 10;
-  const btn = document.getElementById('btn-consumo');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Verificando…';
-
-  const { data: existing } = await db.from('facturas').select('id').eq('numero', numFactura).maybeSingle();
-  if (existing) {
-    showToast('Esa factura ya fue registrada anteriormente.', true);
-    btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos'; return;
-  }
-
-  const { error: factError } = await db.from('facturas').insert([{
-    numero: numFactura, cliente_id: currentUser.id, total: total, puntos: pts
-  }]);
-  if (factError) {
-    showToast('Error al registrar factura.', true);
-    btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos'; return;
-  }
-
-  const newPts = currentUser.puntos + pts;
-  const newVisits = (currentUser.visitas || 1) + 1;
-  const { data: updated, error: updError } = await db
-    .from('clientes').update({ puntos: newPts, visitas: newVisits })
-    .eq('id', currentUser.id).select().single();
-
-  btn.disabled = false; btn.textContent = 'Registrar y Ganar Puntos';
-  if (updError) { showToast('Error actualizando puntos.', true); return; }
-
-  currentUser = updated;
-  document.getElementById('factura-num').value = '';
-  document.getElementById('factura-total').value = '';
-  document.getElementById('pts-preview').style.display = 'none';
-  showToast('+' + pts + ' puntos! Factura #' + numFactura + ' registrada ✓');
-  renderCard(updated);
-  loadHistorial();
-}
 
 async function loadHistorial() {
   if (!currentUser) return;
