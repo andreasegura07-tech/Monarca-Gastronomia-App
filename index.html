@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--gold:#C9963A;--gold-light:#E8B86D;--gold-dim:rgba(201,150,58,0.15);--bg:#0d0b08;--bg3:#1a1710;--cream:#F2EBD9;--cream-dim:rgba(242,235,217,0.55);--nav-h:68px}
+:root{--gold:#C9963A;--gold-light:#E8B86D;--gold-dim:rgba(201,150,58,0.13);--bg:#0d0b08;--bg3:#1a1710;--bg4:#221e14;--cream:#F2EBD9;--cream-dim:rgba(242,235,217,0.55);--cream-faint:rgba(242,235,217,0.18);--nav-h:68px}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300;overscroll-behavior:none}
 .screen{display:none;flex-direction:column;height:calc(100dvh - var(--nav-h));overflow-y:auto}
@@ -22,157 +22,165 @@ nav button{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-d
 nav button.active{color:var(--gold)}
 nav button svg{width:22px;height:22px;stroke-width:1.4}
 nav button.active svg{filter:drop-shadow(0 0 6px rgba(201,150,58,.5))}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:2px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--gold-dim)}
 .display{font-family:'Cormorant Garamond',serif}
 
 /* HOME */
 #home{background:var(--bg);padding-bottom:20px}
-.hero{position:relative;min-height:56vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:40px 24px 50px}
+.hero{position:relative;min-height:54vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:40px 24px 50px}
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(201,150,58,.18) 0%,transparent 70%),linear-gradient(180deg,#0d0b08 0%,#1a1308 100%)}
 .wing{position:absolute;opacity:.06;fill:var(--gold)}
 .wing-l{transform:translateX(-40%) rotate(-15deg) scale(2.2)}
 .wing-r{transform:translateX(40%) rotate(15deg) scale(2.2) scaleX(-1)}
-.hero-divider{width:1px;height:60px;background:linear-gradient(to bottom,transparent,var(--gold),transparent);margin-bottom:18px;position:relative;z-index:1}
-.hero-sub{font-size:10px;font-weight:500;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;position:relative;z-index:1}
-.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,14vw,76px);font-weight:300;line-height:.9;text-align:center;color:var(--cream);position:relative;z-index:1}
+.hero-divider{width:1px;height:50px;background:linear-gradient(to bottom,transparent,var(--gold),transparent);margin-bottom:16px;position:relative;z-index:1}
+.hero-sub{font-size:10px;font-weight:500;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;position:relative;z-index:1}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,13vw,72px);font-weight:300;line-height:.9;text-align:center;color:var(--cream);position:relative;z-index:1}
 .hero-title em{font-style:italic;color:var(--gold-light);display:block}
-.hero-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--cream-dim);margin-top:18px;position:relative;z-index:1;text-align:center}
-.home-cards{padding:0 20px 10px;display:flex;flex-direction:column;gap:14px}
-.home-card{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:22px 20px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:border-color .25s;position:relative;overflow:hidden}
+.hero-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--cream-dim);margin-top:16px;position:relative;z-index:1;text-align:center}
+.home-cards{padding:0 20px 10px;display:flex;flex-direction:column;gap:12px}
+.home-card{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:border-color .25s;position:relative;overflow:hidden}
 .home-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);transform:scaleY(0);transition:transform .3s;transform-origin:bottom}
 .home-card:active{background:rgba(201,150,58,.08);border-color:rgba(201,150,58,.35)}
 .home-card:active::before{transform:scaleY(1)}
-.card-icon{width:46px;height:46px;flex-shrink:0;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold)}
-.card-icon svg{width:22px;height:22px;stroke-width:1.4}
-.card-text h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--cream)}
-.card-text p{font-size:12px;color:var(--cream-dim);margin-top:3px}
-.home-hours{margin:10px 20px 0;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:18px 20px}
-.home-hours h4{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;font-weight:400}
-.hours-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.card-icon{width:44px;height:44px;flex-shrink:0;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold)}
+.card-icon svg{width:20px;height:20px;stroke-width:1.4}
+.card-text h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--cream)}
+.card-text p{font-size:12px;color:var(--cream-dim);margin-top:2px}
+.home-hours{margin:10px 20px 0;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:16px 20px}
+.home-hours h4{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;font-weight:400}
+.hours-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
 .hours-row:last-child{border-bottom:none}
 .hours-row span:last-child{color:var(--cream-dim)}
 
 /* MENU */
 #menu{background:var(--bg)}
-.screen-header{padding:32px 24px 20px;background:var(--bg);border-bottom:1px solid rgba(201,150,58,.1);flex-shrink:0}
-.screen-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream);line-height:1}
+.screen-header{padding:28px 24px 16px;background:var(--bg);border-bottom:1px solid rgba(201,150,58,.1);flex-shrink:0}
+.screen-header .display{font-size:clamp(32px,9vw,44px);font-weight:300;color:var(--cream);line-height:1}
 .screen-header .display em{font-style:italic;color:var(--gold-light)}
-.screen-header p{font-size:12px;color:var(--cream-dim);margin-top:6px;letter-spacing:.05em}
-.cat-tabs{display:flex;gap:8px;padding:14px 20px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.screen-header p{font-size:11px;color:var(--cream-dim);margin-top:5px;letter-spacing:.05em}
+.cat-tabs{display:flex;gap:7px;padding:12px 20px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
 .cat-tabs::-webkit-scrollbar{display:none}
-.cat-tab{white-space:nowrap;padding:7px 16px;border:1px solid rgba(201,150,58,.25);border-radius:20px;background:none;color:var(--cream-dim);cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transition:all .2s}
+.cat-tab{white-space:nowrap;padding:6px 14px;border:1px solid rgba(201,150,58,.25);border-radius:20px;background:none;color:var(--cream-dim);cursor:pointer;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;flex-shrink:0}
 .cat-tab.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:500}
-.menu-list{flex:1;overflow-y:auto;padding:6px 20px 20px}
+.menu-list{flex:1;overflow-y:auto;padding:4px 20px 20px}
 .menu-section{display:none}
 .menu-section.active{display:block}
-.menu-item{border-bottom:1px solid rgba(255,255,255,.06);padding:18px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+
+/* Category photo header */
+.cat-photo{width:100%;height:130px;object-fit:cover;border-radius:2px;margin:10px 0 4px;filter:brightness(.75) saturate(1.1);display:block}
+.cat-title-bar{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold-light);margin-bottom:2px;font-style:italic}
+.cat-note{font-size:11px;color:var(--cream-dim);margin-bottom:12px;line-height:1.5}
+
+.menu-subsection-title{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);padding:14px 0 6px;border-top:1px solid rgba(201,150,58,.12);margin-top:8px}
+.menu-subsection-title:first-child{border-top:none;margin-top:0;padding-top:6px}
+
+.menu-item{border-bottom:1px solid rgba(255,255,255,.05);padding:13px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .menu-item:last-child{border-bottom:none}
-.item-info h4{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--cream)}
-.item-info p{font-size:12px;color:var(--cream-dim);margin-top:4px;line-height:1.5;max-width:240px}
-.item-info .tag{display:inline-block;margin-top:7px;padding:2px 8px;border:1px solid rgba(201,150,58,.3);border-radius:10px;font-size:10px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
-.item-price{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold-light);white-space:nowrap;font-weight:300;padding-top:2px}
+.item-info h4{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--cream);line-height:1.2}
+.item-info p{font-size:11px;color:var(--cream-dim);margin-top:3px;line-height:1.5;max-width:230px}
+.item-info .tag{display:inline-block;margin-top:5px;padding:2px 7px;border:1px solid rgba(201,150,58,.3);border-radius:10px;font-size:9px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.item-price{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-light);white-space:nowrap;font-weight:300;padding-top:2px;text-align:right;min-width:60px}
 
 /* RESERVAR */
-#reservar{background:var(--bg);padding:32px 24px;gap:0}
-.reserve-header{margin-bottom:28px}
-.reserve-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream)}
+#reservar{background:var(--bg);padding:28px 24px;gap:0;overflow-y:auto}
+.reserve-header{margin-bottom:24px}
+.reserve-header .display{font-size:clamp(32px,9vw,44px);font-weight:300;color:var(--cream)}
 .reserve-header .display em{font-style:italic;color:var(--gold-light)}
 .reserve-header p{font-size:13px;color:var(--cream-dim);margin-top:8px;line-height:1.6}
-.form-group{margin-bottom:18px}
-label{display:block;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
-input,select,textarea{width:100%;background:var(--bg3);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:15px;font-weight:300;padding:13px 16px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9963A' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+input,select,textarea{width:100%;background:var(--bg3);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:14px;font-weight:300;padding:12px 15px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9963A' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
-textarea{resize:none;height:80px}
+textarea{resize:none;height:75px}
 input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) saturate(3) hue-rotate(5deg);opacity:.5}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.btn-reserve{width:100%;margin-top:6px;background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-reserve{width:100%;margin-top:4px;background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:15px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s}
 .btn-reserve:active{background:var(--gold-light);transform:scale(.98)}
-.btn-reserve svg{width:20px;height:20px;fill:var(--bg)}
-.reserve-note{margin-top:16px;padding:14px 16px;background:var(--gold-dim);border-left:2px solid var(--gold);border-radius:0 2px 2px 0;font-size:12px;color:var(--cream-dim);line-height:1.6}
+.btn-reserve svg{width:19px;height:19px;fill:var(--bg)}
+.reserve-note{margin-top:14px;padding:12px 15px;background:var(--gold-dim);border-left:2px solid var(--gold);border-radius:0 2px 2px 0;font-size:12px;color:var(--cream-dim);line-height:1.6}
 
 /* LEALTAD */
-#lealtad{background:var(--bg);padding:32px 24px;gap:0}
-.loyalty-header{margin-bottom:26px}
-.loyalty-header .display{font-size:clamp(34px,9vw,46px);font-weight:300;color:var(--cream)}
+#lealtad{background:var(--bg);padding:28px 24px;gap:0;overflow-y:auto}
+.loyalty-header{margin-bottom:22px}
+.loyalty-header .display{font-size:clamp(32px,9vw,44px);font-weight:300;color:var(--cream)}
 .loyalty-header .display em{font-style:italic;color:var(--gold-light)}
-#loyalty-register{display:flex;flex-direction:column;gap:16px}
+#loyalty-register{display:flex;flex-direction:column;gap:15px}
 #loyalty-register p{font-size:13px;color:var(--cream-dim);line-height:1.6}
-.btn-gold{background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:14px 20px;transition:background .2s,transform .15s}
+.btn-gold{background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:14px;transition:background .2s,transform .15s}
 .btn-gold:active{background:var(--gold-light);transform:scale(.98)}
 .btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.btn-outline{background:none;color:var(--cream-dim);border:1px solid rgba(255,255,255,.15);border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:13px 20px;transition:border-color .2s;margin-top:4px}
-.btn-outline:active{border-color:var(--gold);color:var(--gold)}
-#loyalty-card{display:none;flex-direction:column;gap:20px}
-.loyalty-card-visual{background:linear-gradient(135deg,#1a1308 0%,#2a1e08 50%,#1a1308 100%);border:1px solid rgba(201,150,58,.35);border-radius:6px;padding:26px 22px;position:relative;overflow:hidden}
-.lc-bg-wings{position:absolute;right:-20px;top:-20px;opacity:.05;width:160px;height:160px}
-.lc-label{font-size:9px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
-.lc-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--cream)}
-.lc-phone{font-size:12px;color:var(--cream-dim);margin-top:2px}
-.lc-divider{height:1px;background:rgba(201,150,58,.2);margin:18px 0}
-.lc-points-row{display:flex;align-items:flex-end;gap:8px}
-.lc-pts-num{font-family:'Cormorant Garamond',serif;font-size:52px;line-height:1;color:var(--gold)}
-.lc-pts-label{font-size:11px;color:var(--cream-dim);margin-bottom:8px;letter-spacing:.1em}
-.lc-tier{display:inline-block;margin-top:12px;padding:4px 12px;background:rgba(201,150,58,.15);border:1px solid rgba(201,150,58,.35);border-radius:12px;font-size:11px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
-.prog-bar-wrap{background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:18px}
-.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--cream-dim);margin-bottom:10px}
+.login-toggle{font-size:12px;color:var(--cream-dim);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:center}
+#loyalty-card{display:none;flex-direction:column;gap:18px}
+.loyalty-card-visual{background:linear-gradient(135deg,#1a1308 0%,#2a1e08 50%,#1a1308 100%);border:1px solid rgba(201,150,58,.35);border-radius:6px;padding:24px 20px;position:relative;overflow:hidden}
+.lc-bg-wings{position:absolute;right:-20px;top:-20px;opacity:.05;width:150px;height:150px}
+.lc-label{font-size:9px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+.lc-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream)}
+.lc-phone{font-size:11px;color:var(--cream-dim);margin-top:2px}
+.lc-divider{height:1px;background:rgba(201,150,58,.2);margin:16px 0}
+.lc-points-row{display:flex;align-items:flex-end;gap:7px}
+.lc-pts-num{font-family:'Cormorant Garamond',serif;font-size:48px;line-height:1;color:var(--gold)}
+.lc-pts-label{font-size:11px;color:var(--cream-dim);margin-bottom:7px;letter-spacing:.1em}
+.lc-tier{display:inline-block;margin-top:10px;padding:3px 11px;background:rgba(201,150,58,.15);border:1px solid rgba(201,150,58,.35);border-radius:12px;font-size:10px;color:var(--gold);letter-spacing:.12em;text-transform:uppercase}
+.prog-bar-wrap{background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:16px}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--cream-dim);margin-bottom:9px}
 .prog-label strong{color:var(--gold)}
 .prog-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
-.prog-next{font-size:11px;color:var(--cream-dim);margin-top:8px;text-align:right}
-.rewards-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--cream);margin-bottom:4px}
-.rewards-list{display:flex;flex-direction:column;gap:10px}
-.reward-item{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:14px 16px}
+.prog-next{font-size:11px;color:var(--cream-dim);margin-top:7px;text-align:right}
+.rewards-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream);margin-bottom:3px}
+.rewards-list{display:flex;flex-direction:column;gap:9px}
+.reward-item{display:flex;align-items:center;gap:13px;background:var(--bg3);border:1px solid rgba(201,150,58,.1);border-radius:2px;padding:12px 15px}
 .reward-item.earned{border-color:rgba(201,150,58,.4)}
-.reward-badge{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.04)}
+.reward-badge{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,.04)}
 .reward-item.earned .reward-badge{background:var(--gold-dim)}
 .reward-info{flex:1}
-.reward-info h4{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--cream)}
+.reward-info h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;color:var(--cream)}
 .reward-info p{font-size:11px;color:var(--cream-dim);margin-top:2px}
-.reward-pts{font-size:13px;color:var(--gold);white-space:nowrap}
+.reward-pts{font-size:12px;color:var(--gold);white-space:nowrap}
 .reward-item.earned .reward-pts{font-size:11px}
-.btn-logout{background:none;border:none;color:rgba(242,235,217,.2);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;text-align:right;padding:4px 0}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+.btn-logout{background:none;border:none;color:rgba(242,235,217,.2);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;text-align:right;padding:3px 0}
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:7px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.login-toggle{font-size:12px;color:var(--cream-dim);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:center}
 
 /* INFO */
-#info{background:var(--bg);padding:32px 24px;gap:0}
-.info-header{margin-bottom:28px}
-.info-header .display{font-size:clamp(36px,10vw,48px);font-weight:300;color:var(--cream)}
+#info{background:var(--bg);padding:28px 24px;gap:0;overflow-y:auto}
+.info-header{margin-bottom:24px}
+.info-header .display{font-size:clamp(32px,9vw,44px);font-weight:300;color:var(--cream)}
 .info-header .display em{font-style:italic;color:var(--gold-light)}
-.info-block{background:var(--bg3);border:1px solid rgba(201,150,58,.12);border-radius:2px;padding:20px;margin-bottom:14px}
-.info-block h4{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
-.info-row{display:flex;gap:12px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.info-block{background:var(--bg3);border:1px solid rgba(201,150,58,.12);border-radius:2px;padding:18px;margin-bottom:12px}
+.info-block h4{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.info-row{display:flex;gap:11px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
 .info-row:last-child{border-bottom:none}
-.info-row svg{width:16px;height:16px;flex-shrink:0;color:var(--gold);margin-top:1px;stroke-width:1.5}
+.info-row svg{width:15px;height:15px;flex-shrink:0;color:var(--gold);margin-top:2px;stroke-width:1.5}
 .info-row span{color:var(--cream-dim);line-height:1.5}
 .info-row a{color:var(--cream-dim);text-decoration:none}
-.btn-wa{width:100%;background:#25D366;color:#fff;border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s}
+.btn-wa{width:100%;background:#25D366;color:#fff;border:none;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:15px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s,transform .15s;margin-top:4px}
 .btn-wa:active{background:#1da851;transform:scale(.98)}
-.btn-wa svg{width:20px;height:20px;fill:white}
+.btn-wa svg{width:19px;height:19px;fill:white}
+.social-row{display:flex;gap:10px;margin-top:4px}
+.social-btn{flex:1;background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:12px;text-align:center;font-size:11px;color:var(--cream-dim);text-decoration:none;letter-spacing:.05em}
 
 /* TOAST */
-#toast{position:fixed;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--bg);padding:11px 22px;border-radius:2px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:normal;text-align:center;max-width:90vw;z-index:200}
+#toast{position:fixed;bottom:calc(var(--nav-h) + 18px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--bg);padding:10px 20px;border-radius:2px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:normal;text-align:center;max-width:90vw;z-index:200}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.error{background:#8B3A2A;color:var(--cream)}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashOut .5s ease 2s forwards}
+#splash{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashOut .5s ease 2.2s forwards}
 @keyframes splashOut{to{opacity:0;pointer-events:none}}
-.splash-title{font-family:'Cormorant Garamond',serif;font-size:58px;font-weight:300;color:var(--cream);text-align:center;line-height:.9}
+.splash-title{font-family:'Cormorant Garamond',serif;font-size:54px;font-weight:300;color:var(--cream);text-align:center;line-height:.9}
 .splash-title em{font-style:italic;color:var(--gold-light);display:block}
-.splash-sub{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-top:18px}
-.splash-line{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:22px;animation:widen 1.5s ease forwards}
-@keyframes widen{from{width:0;opacity:0}to{width:80px;opacity:1}}
+.splash-sub{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-top:16px}
+.splash-line{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:20px;animation:widen 1.6s ease .3s forwards}
+@keyframes widen{to{width:80px}}
 </style>
 </head>
 <body>
 
 <div id="splash">
   <div class="splash-title">Monarca<em>Gastronomía</em></div>
-  <div class="splash-sub">Escazú, Costa Rica</div>
+  <div class="splash-sub">Escazú · Costa Rica</div>
   <div class="splash-line"></div>
 </div>
 
@@ -185,16 +193,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
     <div class="hero-divider"></div>
     <div class="hero-sub">Bienvenidos a</div>
     <h1 class="hero-title">Monarca<em>Gastronomía</em></h1>
-    <p class="hero-tagline">Una experiencia culinaria única en Escazú</p>
+    <p class="hero-tagline">Sabores auténticos en el corazón de Escazú</p>
   </div>
   <div class="home-cards">
     <div class="home-card" onclick="goTo('menu')">
       <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg></div>
-      <div class="card-text"><h3>Menú</h3><p>Descubrí nuestros platillos y propuesta gastronómica</p></div>
+      <div class="card-text"><h3>Menú Completo</h3><p>Desayunos, platos fuertes, pizzas, pastas y más</p></div>
     </div>
     <div class="home-card" onclick="goTo('reservar')">
       <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-      <div class="card-text"><h3>Reservar Mesa</h3><p>Asegurá tu espacio para una experiencia inolvidable</p></div>
+      <div class="card-text"><h3>Reservar Mesa</h3><p>Asegurá tu espacio para una experiencia especial</p></div>
     </div>
     <div class="home-card" onclick="goTo('lealtad')">
       <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
@@ -203,46 +211,296 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
   </div>
   <div class="home-hours">
     <h4>Horarios</h4>
-    <div class="hours-row"><span>Lunes – Jueves</span><span>12:00 – 22:00</span></div>
-    <div class="hours-row"><span>Viernes – Sábado</span><span>12:00 – 23:00</span></div>
-    <div class="hours-row"><span>Domingo</span><span>12:00 – 21:00</span></div>
+    <div class="hours-row"><span>Lunes – Jueves</span><span>9:00 am – 6:00 pm</span></div>
+    <div class="hours-row"><span>Viernes – Sábado</span><span>9:00 am – 9:00 pm</span></div>
+    <div class="hours-row"><span>Domingo</span><span>9:00 am – 6:00 pm</span></div>
+    <div class="hours-row" style="border-top:1px solid rgba(201,150,58,.1);margin-top:4px;padding-top:8px"><span style="color:var(--gold-light);font-style:italic">Otros horarios con reservación</span></div>
   </div>
 </section>
 
 <!-- MENU -->
 <section id="menu" class="screen">
-  <div class="screen-header"><div class="display">Nuestro<em>Menú</em></div><p>Ingredientes frescos · Sabores auténticos</p></div>
-  <div class="cat-tabs">
-    <button class="cat-tab active" onclick="switchCat('entradas',this)">Entradas</button>
-    <button class="cat-tab" onclick="switchCat('principales',this)">Principales</button>
-    <button class="cat-tab" onclick="switchCat('postres',this)">Postres</button>
+  <div class="screen-header">
+    <div class="display">Nuestro<em>Menú</em></div>
+    <p>Todos los precios incluyen impuestos · Pet Friendly 🐾</p>
+  </div>
+  <div class="cat-tabs" id="cat-tabs">
+    <button class="cat-tab active" onclick="switchCat('desayunos',this)">Desayunos</button>
+    <button class="cat-tab" onclick="switchCat('entradas',this)">Entradas</button>
+    <button class="cat-tab" onclick="switchCat('ensaladas',this)">Ensaladas</button>
+    <button class="cat-tab" onclick="switchCat('platos',this)">Platos</button>
+    <button class="cat-tab" onclick="switchCat('pastas',this)">Pastas</button>
+    <button class="cat-tab" onclick="switchCat('pizza',this)">Pizza</button>
+    <button class="cat-tab" onclick="switchCat('sandwich',this)">Sandwich</button>
+    <button class="cat-tab" onclick="switchCat('bocas',this)">Bocas</button>
+    <button class="cat-tab" onclick="switchCat('ninos',this)">Niños</button>
     <button class="cat-tab" onclick="switchCat('bebidas',this)">Bebidas</button>
   </div>
   <div class="menu-list">
-    <div id="cat-entradas" class="menu-section active">
-      <div class="menu-item"><div class="item-info"><h4>Ceviche de Mariposa</h4><p>Corvina fresca, leche de tigre, maíz tostado y aguacate</p><span class="tag">Signature</span></div><div class="item-price">₡7.500</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Tataki de Atún</h4><p>Atún sellado, salsa ponzu, jengibre encurtido y ajonjolí</p></div><div class="item-price">₡9.200</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Bruschetta Monarca</h4><p>Pan artesanal, tomates cherry, prosciutto y reducción balsámica</p></div><div class="item-price">₡5.800</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Sopa de Tomate Asado</h4><p>Tomate San Marzano, crema de coco y albahaca fresca</p><span class="tag">Vegetariano</span></div><div class="item-price">₡4.500</div></div>
+
+    <!-- DESAYUNOS -->
+    <div id="cat-desayunos" class="menu-section active">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=700&q=80" alt="Desayunos" loading="lazy">
+      <div class="cat-title-bar">Desayunos</div>
+      <div class="cat-note">De 9 am a 12 md · Preguntá disponibilidad en otro horario</div>
+      <div class="menu-item"><div class="item-info"><h4>Desayuno Costarricense</h4><p>Gallo pinto, dos huevos al gusto, queso, natilla, tortillas o tostada, plátano maduro. Incluye jugo de naranja.</p></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tostadas Francesas</h4><p>Con banano y fresas, nutella y sirope de maple. Incluye jugo de naranja.</p></div><div class="item-price">₡5.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Desayuno Americano</h4><p>Dos huevos al gusto, tostada, 3 pancakes y tocineta. Incluye jugo de naranja.</p></div><div class="item-price">₡6.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Desayuno Ligero</h4><p>Bowl de frutas tropicales con granola y yogurt, tostada con mantequilla y mermelada. Incluye jugo de naranja.</p></div><div class="item-price">₡4.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Omelette de Jamón, Hongos y Tomate Cherry</h4><p>Con queso mozzarella y pan cuadrado tostado. Incluye jugo de naranja.</p></div><div class="item-price">₡4.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Huevos Monarca</h4><p>Dos huevos fritos sobre tortillas con frijoles molidos, cubiertos con salsa pomodoro. Incluye jugo de naranja.</p><span class="tag">Signature</span></div><div class="item-price">₡4.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Desayuno Capullo para Niñ@s</h4><p>Huevito, dos mini pancakes, frutitas con granola y yogurt, tostada y juguito de naranja.</p></div><div class="item-price">₡4.750</div></div>
     </div>
-    <div id="cat-principales" class="menu-section">
-      <div class="menu-item"><div class="item-info"><h4>Lomo de Res al Carbón</h4><p>200g de res nacional, mantequilla de hierbas y papas rústicas</p><span class="tag">Chef Recomienda</span></div><div class="item-price">₡18.500</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Filete de Dorado</h4><p>Dorado fresco del Pacífico, salsa de maracuyá y arroz con coco</p></div><div class="item-price">₡15.200</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Risotto de Hongos</h4><p>Portobello, porcini y shiitake, parmesano reggiano y trufa negra</p><span class="tag">Vegetariano</span></div><div class="item-price">₡13.800</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Pollo en Mole Negro</h4><p>Pechuga de pollo de granja, mole artesanal y tortillas de maíz azul</p></div><div class="item-price">₡14.000</div></div>
+
+    <!-- ENTRADAS -->
+    <div id="cat-entradas" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1484980972926-edee96e0960d?w=700&q=80" alt="Entradas" loading="lazy">
+      <div class="cat-title-bar">Entradas</div>
+      <div class="menu-item"><div class="item-info"><h4>Crema del Día</h4><p>Deliciosa crema preparada con ingredientes frescos y naturales.</p></div><div class="item-price">₡3.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Aguacate Relleno de Camarón</h4><p>Medio aguacate relleno de camarones en salsa coctel a base de tomate y limón.</p></div><div class="item-price">₡6.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ceviche de Corvina</h4><p>Trocitos de pescado fresco, jugo de limón, cebolla blanca y morada, culantro, chile dulce y aguacate.</p><span class="tag">Fresco</span></div><div class="item-price">₡6.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ceviche de Tilapia</h4><p>Trocitos de pescado fresco, jugo de limón, cebolla blanca y morada, culantro, chile dulce y aguacate.</p></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Hongos Empanizados</h4><p>Hongos empanizados acompañados con salsa ranch.</p></div><div class="item-price">₡5.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Hummus</h4><p>Puré de garbanzos con tahini, jugo de limón, ajo y especies. Se sirve con pan árabe y aceite de oliva.</p><span class="tag">Vegetariano</span></div><div class="item-price">₡5.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bruschetta de Tomate</h4><p>Tomate arreglado y albahaca.</p></div><div class="item-price">₡2.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bruschetta de Champiñones</h4></div><div class="item-price">₡3.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bruschetta de Prosciutto</h4><p>Con vinagre balsámico.</p></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Focaccia Tradicional</h4><p>Aceite de ajo, romero y una pisca de sal.</p></div><div class="item-price">₡4.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Focaccia del Chef</h4><p>Con tomate cherry, cebolla, cebollino, aceitunas, hongos frescos y pimientos, aceite de oliva y ajos.</p><span class="tag">Chef Recomienda</span></div><div class="item-price">₡6.100</div></div>
     </div>
-    <div id="cat-postres" class="menu-section">
-      <div class="menu-item"><div class="item-info"><h4>Fondant de Chocolate</h4><p>Corazón de chocolate 70%, helado de vainilla bourbon</p><span class="tag">Signature</span></div><div class="item-price">₡5.500</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Tres Leches Monarca</h4><p>Versión propia del clásico, con crema de café y nuez caramelizada</p></div><div class="item-price">₡4.800</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Tarta de Maracuyá</h4><p>Crema de maracuyá, base de galleta y merengue italiano</p></div><div class="item-price">₡4.500</div></div>
+
+    <!-- ENSALADAS -->
+    <div id="cat-ensaladas" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=700&q=80" alt="Ensaladas" loading="lazy">
+      <div class="cat-title-bar">Ensaladas</div>
+      <div class="menu-item"><div class="item-info"><h4>Ensalada Butterfly</h4><p>Lechuga romana, tomate cherry, pecanas caramelizadas, queso tierno, fresas y gajos de naranja; con aderezo de grape fruit y naranja.</p><span class="tag">Signature</span></div><div class="item-price">₡6.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ensalada Capresse</h4><p>Rodajas de tomate fresco, queso mozzarella Bocconcini, albahaca fresca, vinagre balsámico y pesto.</p><span class="tag">Vegetariano</span></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ensalada César</h4><p>Lechuga romana, aderezo César, queso parmesano y crotones.</p></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ensalada César con Pollo</h4></div><div class="item-price">₡8.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ensalada César con Camarones</h4></div><div class="item-price">₡9.790</div></div>
     </div>
+
+    <!-- PLATOS FUERTES -->
+    <div id="cat-platos" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=700&q=80" alt="Platos Fuertes" loading="lazy">
+      <div class="cat-title-bar">Platos Fuertes</div>
+      <div class="menu-item"><div class="item-info"><h4>Pollo Monarca</h4><p>Medallones de pollo rellenos de frutos deshidratados y pecanas, salsa de arándanos. Con vegetales salteados y puré de papa.</p><span class="tag">Signature</span></div><div class="item-price">₡9.590</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Lomito Monarca</h4><p>Corte de lomito con vegetales salteados y puré de papa. A escoger: salsa de vino tinto o salsa de hongos.</p><span class="tag">Chef Recomienda</span></div><div class="item-price">₡13.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Filet de Corvina</h4><p>Preparado a su gusto. Acompañado de vegetales y puré.</p></div><div class="item-price">₡9.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Costilla BBQ</h4><p>Costilla de cerdo al estilo Saint Louis. Con ensalada y papas gajo.</p></div><div class="item-price">₡11.995</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Calzone de Puntas de Lomito a la Jalapeña</h4><p>Pizza doblada rellena de puntas de lomito en salsa cremosa picante con chile jalapeño, hongos, cebolla y queso mozzarella.</p></div><div class="item-price">₡13.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Puntas de Lomito a la Jalapeña</h4><p>Puntas de lomito a la parrilla en salsa cremosa picante con jalapeño y queso mozzarella. Con papas gajo.</p></div><div class="item-price">₡9.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Del Bosque y Mar</h4><p>Brócoli y camarones salteados en mantequilla y ajo con pecana caramelizada, acompañado de pan español.</p></div><div class="item-price">₡10.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Risotto de Quesos y Camarón</h4><p>Risotto fresco en salsa de quesos varios y camarones.</p></div><div class="item-price">₡12.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tacos de Camarón</h4><p>Tres tacos de camarón al gusto, en tortilla de trigo, con repollo, zanahoria y aguacate; salsa chipotle o ranch.</p></div><div class="item-price">₡10.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Cazuela de Camarones</h4><p>Camarones y verduritas salteados con mantequilla, ajo y vodka; capa de queso provolone derretido.</p></div><div class="item-price">₡10.750</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sopa Azteca</h4><p>Crema de tomate, vegetales y tortilla de maíz frita. Con pollo desmenuzado, aguacate, queso fresco y natilla.</p></div><div class="item-price">₡6.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Hamburguesa Monarca</h4><p>Carne Angus, jamón, tocineta, champiñones, queso mozzarella, cebolla caramelizada, lechuga y tomate. Con papas bravas.</p></div><div class="item-price">₡10.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Hamburguesa Smash Burger</h4><p>Carne de cerdo marinada con encurtido de repollo morado y mayonesa (cole slaw). Con papas bravas.</p></div><div class="item-price">₡9.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Chifrijo</h4><p>Arroz, frijoles tiernos, chicharrón y pico de gallo, con aguacate y chips de tortilla.</p><span class="tag">Tico</span></div><div class="item-price">₡6.850</div></div>
+      <div class="menu-subsection-title">Platos del Día</div>
+      <div class="menu-item"><div class="item-info"><h4>Plato Ejecutivo</h4><p>Arroz, frijoles, ensalada y plátano maduro. A escoger: carne mechada, pollo mechado o tilapia al gusto.</p><span class="tag">Lun – Vie</span></div><div class="item-price">₡5.750</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Casado Premium – Lomito</h4><p>Arroz, frijoles, ensalada y plátano maduro.</p></div><div class="item-price">₡13.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Casado Premium – Pollo</h4></div><div class="item-price">₡9.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Casado Premium – Camarones</h4></div><div class="item-price">₡10.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Casado Premium – Corvina</h4></div><div class="item-price">₡9.500</div></div>
+      <div class="menu-subsection-title">Para Compartir</div>
+      <div class="menu-item"><div class="item-info"><h4>Tablita de Carnes a la Parrilla</h4><p>Lomito, chorizo, pechuga de pollo, costilla Saint Louis, palitos de yuca, tortillas de maíz y chimichurri.</p><span class="tag">Para 2-3 personas</span></div><div class="item-price">₡28.000</div></div>
+    </div>
+
+    <!-- PASTAS -->
+    <div id="cat-pastas" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=700&q=80" alt="Pastas" loading="lazy">
+      <div class="cat-title-bar">Pastas</div>
+      <div class="cat-note">Escoger entre fettuccine, spaguetti o penne</div>
+      <div class="menu-item"><div class="item-info"><h4>Ravioli de Queso y Espinaca</h4><p>Salsa pomodoro o salsa bechamel.</p></div><div class="item-price">₡8.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta Alfredo</h4><p>Salsa Alfredo, hongos frescos, jamón y queso parmesano.</p></div><div class="item-price">₡8.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta Alfredo con Pollo</h4></div><div class="item-price">₡9.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta con Mariscos</h4><p>Mix de mariscos a la mantequilla.</p></div><div class="item-price">₡9.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta con Camarones</h4><p>Camarones salteados en salsa bechamel con queso.</p></div><div class="item-price">₡9.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta Bolognesa</h4><p>Exquisita salsa a base de carne molida y pomodoro.</p></div><div class="item-price">₡8.100</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Carbonara</h4><p>Salsa a base de queso parmesano, huevo y tocineta.</p></div><div class="item-price">₡9.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Checca</h4><p>Salsa de tomate de la casa, tomate cherry, bocconcini fresco y albahaca fresca.</p><span class="tag">Vegetariano</span></div><div class="item-price">₡7.900</div></div>
+    </div>
+
+    <!-- PIZZA -->
+    <div id="cat-pizza" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=700&q=80" alt="Pizza" loading="lazy">
+      <div class="cat-title-bar">Pizza</div>
+      <div class="menu-item"><div class="item-info"><h4>Margarita</h4><p>Salsa de tomate de la casa, mozzarella, tomate fresco en rodajas, albahaca y orégano.</p></div><div class="item-price">₡9.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Jamón y Queso</h4><p>Salsa de tomate de la casa, mozzarella y jamón.</p></div><div class="item-price">₡10.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Jamón y Hongos</h4><p>Salsa de tomate de la casa, mozzarella, jamón y hongos frescos.</p></div><div class="item-price">₡11.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Alfredo con Pollo y Tocineta</h4><p>Salsa Alfredo, mozzarella, pollo y tocineta en trocitos.</p></div><div class="item-price">₡12.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Vegetariana</h4><p>Salsa de tomate, mozzarella, hongos frescos, cebolla, chile dulce y tomate natural.</p><span class="tag">Vegetariano</span></div><div class="item-price">₡10.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mediterránea</h4><p>Salsa de tomate, mozzarella, hongos frescos, aceitunas verdes, alcaparras, cebolla y chile dulce.</p></div><div class="item-price">₡10.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pepperoni</h4><p>Salsa de tomate de la casa, mozzarella y pepperoni.</p></div><div class="item-price">₡11.850</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Brasileña</h4><p>Salsa de tomate, mozzarella, carne molida arreglada, cebolla y limón en gajitos.</p></div><div class="item-price">₡10.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Di Alessandro</h4><p>Salsa de tomate, mozzarella, prosciutto, arúgula fresca y lonjas de queso parmesano.</p><span class="tag">Chef Recomienda</span></div><div class="item-price">₡13.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pizza de Camarón</h4><p>Salsa de tomate, mozzarella, camarones salteados, pesto y orégano.</p></div><div class="item-price">₡12.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Hawaiana</h4><p>Salsa de tomate, mozzarella, jamón y piña en cuadritos previamente salteada.</p></div><div class="item-price">₡11.300</div></div>
+    </div>
+
+    <!-- SANDWICH -->
+    <div id="cat-sandwich" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=700&q=80" alt="Sandwich" loading="lazy">
+      <div class="cat-title-bar">Sandwich y más…</div>
+      <div class="menu-item"><div class="item-info"><h4>Sandwich de Pollo</h4><p>Pechuga de pollo, queso mozzarella derretido, tomate y lechuga con sandwich spread. Con papas bravas.</p></div><div class="item-price">₡5.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sandwich Escazuceño</h4><p>Pan de mano de piedra, frijoles molidos, tomate, lechuga, mayonesa y salsa Lizano. Con papas bravas.</p><span class="tag">Tico</span></div><div class="item-price">₡5.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sandwich de Jamón y Queso</h4><p>Jamón, queso mozzarella derretido, tomate y lechuga con sandwich spread. Con papas a la francesa.</p></div><div class="item-price">₡5.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mini Calzone Capresse</h4><p>Relleno de jamón, queso mozzarella derretido, albahaca y tomate cherry.</p></div><div class="item-price">₡4.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Chorreada de Maíz</h4><p>Chorreadas elaboradas al momento, acompañadas de natilla. Tiempo de preparación: 20 minutos.</p><span class="tag">Tico</span></div><div class="item-price">₡3.500</div></div>
+    </div>
+
+    <!-- BOCAS -->
+    <div id="cat-bocas" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1541014741259-de529411b96a?w=700&q=80" alt="Bocas" loading="lazy">
+      <div class="cat-title-bar">Bocas</div>
+      <div class="menu-item"><div class="item-info"><h4>Sopa Azteca en Boca</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ceviche de Corvina en Boca</h4></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ceviche de Tilapia en Boca</h4></div><div class="item-price">₡4.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Chifrijo en Boca</h4></div><div class="item-price">₡4.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Cazuelita de Hongos con Queso Provolone</h4></div><div class="item-price">₡5.100</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Cazuelita de Camarones con Queso Provolone</h4></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Medalloncito de Lomito con Papas Gajo</h4></div><div class="item-price">₡6.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pechuga de Pollo a la Parmigiana</h4></div><div class="item-price">₡5.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Cóctel de Camarón Empanizado</h4></div><div class="item-price">₡7.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Gratín de Papa con Camarón</h4></div><div class="item-price">₡5.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Costillita de Cerdo con Palitos de Yuca</h4></div><div class="item-price">₡6.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Canastas de Yuca de Frijol (2)</h4><p>Todas acompañadas de guacamole, queso y pico de gallo.</p></div><div class="item-price">₡1.750</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Canastas de Yuca de Carne Mechada (2)</h4></div><div class="item-price">₡3.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Canastas de Yuca de Pollo (2)</h4></div><div class="item-price">₡3.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Canastas de Yuca Mixtas (3)</h4></div><div class="item-price">₡3.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Quesadilla de Queso</h4></div><div class="item-price">₡4.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Quesadilla de Pollo</h4></div><div class="item-price">₡4.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Quesadilla de Carne Mechada</h4></div><div class="item-price">₡4.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Queso Mozzarella Cherry Empanizado</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pechuguitas de Pollo</h4></div><div class="item-price">₡4.995</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Deditos de Pescado Empanizados</h4></div><div class="item-price">₡4.995</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Papas a la Francesa</h4></div><div class="item-price">₡2.750</div></div>
+    </div>
+
+    <!-- NIÑOS -->
+    <div id="cat-ninos" class="menu-section">
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=700&q=80" alt="Menu Niños" loading="lazy">
+      <div class="cat-title-bar">Menú para Niños</div>
+      <div class="menu-item"><div class="item-info"><h4>Pizza Mariposa para los Peques</h4><p>Salsa de tomate de la casa, mozzarella y jamón.</p><span class="tag">🦋 Kids</span></div><div class="item-price">₡9.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pechuguitas de Pollo (5 uds)</h4><p>Trocitos de pechuga empanizados, con salsa rosada y papas a la francesa.</p></div><div class="item-price">₡4.995</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Deditos de Pescado (5 uds)</h4><p>Trocitos de pescado empanizados, con salsa rosada y papas a la francesa.</p></div><div class="item-price">₡4.995</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Slider Burgers</h4><p>Dos mini hamburguesas de colores, arregladas con jamón y queso amarillo; con papas a la francesa.</p></div><div class="item-price">₡6.250</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pasta a la Mantequilla</h4></div><div class="item-price">₡4.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Papas a la Francesa (250 g)</h4><p>Servidas con salsa rosada.</p></div><div class="item-price">₡2.750</div></div>
+    </div>
+
+    <!-- BEBIDAS -->
     <div id="cat-bebidas" class="menu-section">
-      <div class="menu-item"><div class="item-info"><h4>Cóctel Mariposa Azul</h4><p>Gin, flor de Jamaica, limón y agua tónica</p><span class="tag">Firma</span></div><div class="item-price">₡6.800</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Agua de Jamaica</h4><p>Flor de Jamaica local, jengibre y naranja</p><span class="tag">Sin alcohol</span></div><div class="item-price">₡2.500</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Vino de la Casa</h4><p>Selección del sommelier · Copa</p></div><div class="item-price">₡4.200</div></div>
-      <div class="menu-item"><div class="item-info"><h4>Café de Especialidad</h4><p>Café costarricense de altura, V60 o espresso</p></div><div class="item-price">₡2.200</div></div>
+      <img class="cat-photo" src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=700&q=80" alt="Bebidas" loading="lazy">
+      <div class="cat-title-bar">Bebidas</div>
+
+      <div class="menu-subsection-title">Bebidas Naturales</div>
+      <div class="menu-item"><div class="item-info"><h4>Pitahaya (en temporada)</h4></div><div class="item-price">₡2.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sandía</h4></div><div class="item-price">₡2.100</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Limonada</h4></div><div class="item-price">₡2.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Limonada con Hierbabuena o Albahaca</h4></div><div class="item-price">₡2.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Piña</h4></div><div class="item-price">₡2.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Piña con Hierbabuena o Albahaca</h4></div><div class="item-price">₡2.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ponche de Frutas</h4></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mora</h4></div><div class="item-price">₡2.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Fresa</h4></div><div class="item-price">₡2.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mango</h4></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Piña-Coco</h4></div><div class="item-price">₡2.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Guanábana</h4></div><div class="item-price">₡2.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Frutos Rojos (mora/fresa/blueberries)</h4></div><div class="item-price">₡2.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Jugo de Naranja</h4></div><div class="item-price">₡1.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Jugo de Tomate Arreglado</h4></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Agua Rain Forest 475mL (Blue Morpho)</h4><p>Botella de aluminio reutilizable</p></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Agua Embotellada</h4></div><div class="item-price">₡1.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Batidos en Leche</h4><p>Agregar ₡500 a cualquier natural</p></div><div class="item-price">+₡500</div></div>
+
+      <div class="menu-subsection-title">Gaseosas y Té Frío</div>
+      <div class="menu-item"><div class="item-info"><h4>Coca Cola / Ginger Ale / Soda 600 mL</h4></div><div class="item-price">₡2.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Coca Cola / Ginger Ale / Soda 350 mL</h4></div><div class="item-price">₡1.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Té Frío de la Casa</h4></div><div class="item-price">₡1.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Fuze Tea</h4></div><div class="item-price">₡1.550</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tropical 355 mL</h4></div><div class="item-price">₡1.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Soda 600 mL</h4></div><div class="item-price">₡2.100</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Agua Tónica Evervess 600 mL</h4></div><div class="item-price">₡2.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Agua Gasificada S. Pellegrino 500 mL</h4></div><div class="item-price">₡2.800</div></div>
+
+      <div class="menu-subsection-title">Cafés Fríos</div>
+      <div class="menu-item"><div class="item-info"><h4>Affogato</h4><p>Una bolita de helado de vainilla + 1 expresso</p></div><div class="item-price">₡3.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Frozen Bailey's</h4><p>Licor</p></div><div class="item-price">₡3.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Capuccino Frozen con Nutella</h4></div><div class="item-price">₡3.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Capuccino Frozen Amaretto o Caramelo</h4></div><div class="item-price">₡3.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mocaccino Frozen</h4></div><div class="item-price">₡3.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Té Chai Frozen o en las Rocas</h4></div><div class="item-price">₡3.700</div></div>
+
+      <div class="menu-subsection-title">Bebidas Calientes</div>
+      <div class="menu-item"><div class="item-info"><h4>Café Americano</h4></div><div class="item-price">₡1.600</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Café con Leche</h4></div><div class="item-price">₡1.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Capuccino</h4></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Capuccino con Amaretto o Caramelo</h4></div><div class="item-price">₡2.850</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Capuccino con Leche de Almendra</h4></div><div class="item-price">₡3.150</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Expresso</h4></div><div class="item-price">₡1.600</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Chocolate</h4></div><div class="item-price">₡2.550</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mocaccino</h4></div><div class="item-price">₡2.900</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Té</h4></div><div class="item-price">₡1.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Té con Leche / Té en Leche</h4></div><div class="item-price">₡1.600</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Té Chai</h4></div><div class="item-price">₡2.900</div></div>
+
+      <div class="menu-subsection-title">Bebidas Alcohólicas · Ron</div>
+      <div class="menu-item"><div class="item-info"><h4>Ron Bacardí Claro</h4></div><div class="item-price">₡2.550</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ron Bacardí Oscuro</h4></div><div class="item-price">₡2.800</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ron Flor de Caña 7 años</h4></div><div class="item-price">₡3.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ron Zacapa 23 años</h4></div><div class="item-price">₡5.590</div></div>
+
+      <div class="menu-subsection-title">Whisky</div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Old Parr 12 años</h4></div><div class="item-price">₡4.600</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Chivas Regal</h4></div><div class="item-price">₡3.600</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Johnnie Walker Rojo</h4></div><div class="item-price">₡2.690</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Johnnie Walker Negro 12 años</h4></div><div class="item-price">₡3.890</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Jack Daniel's Old Nº7</h4></div><div class="item-price">₡4.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Jack Daniel's Honey</h4></div><div class="item-price">₡4.150</div></div>
+
+      <div class="menu-subsection-title">Vodka · Ginebra · Tequila</div>
+      <div class="menu-item"><div class="item-info"><h4>Vodka Absolut</h4></div><div class="item-price">₡2.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Vodka Grey Goose</h4></div><div class="item-price">₡3.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Vodka Smirnoff</h4></div><div class="item-price">₡2.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Ginebra Bulldog</h4></div><div class="item-price">₡4.100</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bombay Sapphire</h4></div><div class="item-price">₡3.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tequila 1800</h4></div><div class="item-price">₡3.300</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tequila José Cuervo Especial</h4></div><div class="item-price">₡2.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tequila Don Julio Claro</h4></div><div class="item-price">₡5.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tequila Don Julio Reposado</h4></div><div class="item-price">₡5.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Guaro Cacique</h4></div><div class="item-price">₡1.590</div></div>
+
+      <div class="menu-subsection-title">Cervezas</div>
+      <div class="menu-item"><div class="item-info"><h4>Bavaria</h4></div><div class="item-price">₡2.350</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Pilsen / Imperial</h4></div><div class="item-price">₡1.950</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Corona / Heineken</h4></div><div class="item-price">₡2.500</div></div>
+
+      <div class="menu-subsection-title">Sangrias · Cocteles</div>
+      <div class="menu-item"><div class="item-info"><h4>Sangría Tinta o Blanca</h4></div><div class="item-price">₡4.500</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Sangría Rosada</h4></div><div class="item-price">₡5.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Campari Spritz</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Aperol Spritz</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Piña Colada</h4></div><div class="item-price">₡4.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mojito Clásico</h4></div><div class="item-price">₡3.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Mojito Fresa o Maracuyá</h4></div><div class="item-price">₡4.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Daiquirí de Fresa</h4></div><div class="item-price">₡4.200</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Gin Tonic (pitahaya / cítrico / frutos rojos)</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Gin Tonic Premium</h4></div><div class="item-price">₡6.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Margarita Clásica</h4></div><div class="item-price">₡4.790</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Margarita Blue</h4></div><div class="item-price">₡4.990</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Whisky Sour</h4></div><div class="item-price">₡3.690</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Guaro Sour</h4></div><div class="item-price">₡2.790</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bloody Mary</h4></div><div class="item-price">₡4.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Tequila Sunrise</h4></div><div class="item-price">₡4.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Carajillo</h4></div><div class="item-price">₡4.700</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Amaretto</h4></div><div class="item-price">₡3.000</div></div>
+      <div class="menu-item"><div class="item-info"><h4>Bailey's</h4></div><div class="item-price">₡3.200</div></div>
     </div>
-  </div>
+
+  </div><!-- /menu-list -->
 </section>
 
 <!-- RESERVAR -->
@@ -257,7 +515,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
   <div class="form-row">
     <div class="form-group"><label>Fecha</label><input type="date" id="res-date"></div>
     <div class="form-group"><label>Hora</label>
-      <select id="res-time"><option>12:00</option><option>12:30</option><option>13:00</option><option>13:30</option><option>14:00</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option><option>21:00</option><option>21:30</option></select>
+      <select id="res-time"><option>9:00</option><option>9:30</option><option>10:00</option><option>10:30</option><option>11:00</option><option>11:30</option><option>12:00</option><option>12:30</option><option>13:00</option><option>13:30</option><option>14:00</option><option>14:30</option><option>15:00</option><option>17:00</option><option>17:30</option><option>18:00</option><option>18:30</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option></select>
     </div>
   </div>
   <div class="form-group"><label>Solicitudes especiales (opcional)</label><textarea id="res-notes" placeholder="Alergias, ocasión especial, preferencias…"></textarea></div>
@@ -265,14 +523,14 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.262 2 2 6.262 2 11.5c0 1.86.518 3.6 1.42 5.079L2 22l5.567-1.394A9.45 9.45 0 0011.5 21c5.238 0 9.5-4.262 9.5-9.5S16.738 2 11.5 2z"/></svg>
     Enviar por WhatsApp
   </button>
-  <div class="reserve-note">📍 <strong>Monarca Gastronomía</strong> · Escazú<br>Confirmación al <strong>+506 8955-1717</strong></div>
+  <div class="reserve-note">📍 <strong>Monarca Gastronomía</strong> · Escazú, Costa Rica<br>Confirmación al <strong>+506 8955-1717</strong></div>
 </section>
 
 <!-- LEALTAD -->
 <section id="lealtad" class="screen">
   <div class="loyalty-header"><div class="display">Plan de<em>Lealtad</em></div></div>
   <div id="loyalty-register">
-    <p id="loyalty-form-desc">Registrate con tu nombre y teléfono. Acumulá 100 puntos por cada visita y canjeá beneficios exclusivos en Monarca.</p>
+    <p id="loyalty-form-desc">Registrate con tu nombre y teléfono. Acumulá 100 puntos por cada visita y canjeá beneficios exclusivos.</p>
     <div class="form-group" id="name-group"><label>Nombre completo</label><input type="text" id="loyalty-name-input" placeholder="Nombre y apellido"></div>
     <div class="form-group"><label>Teléfono (WhatsApp)</label><input type="tel" id="loyalty-phone-input" placeholder="8888-8888" maxlength="12"></div>
     <button class="btn-gold" id="btn-register" onclick="handleLoyaltySubmit()">Registrarme</button>
@@ -304,22 +562,27 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
   <div class="info-header"><div class="display">Contacto<em>e Info</em></div></div>
   <div class="info-block">
     <h4>Horarios</h4>
-    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Lun–Jue: 12:00 – 22:00</span></div>
-    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Vie–Sáb: 12:00 – 23:00</span></div>
-    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Dom: 12:00 – 21:00</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Lun–Jue · Dom: 9:00 am – 6:00 pm</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Vie–Sáb: 9:00 am – 9:00 pm</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span style="font-style:italic">Otros horarios con reservación</span></div>
   </div>
   <div class="info-block">
     <h4>Ubicación</h4>
-    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Escazú, San José · Costa Rica</span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Escazú, San José · Costa Rica<br><a href="https://www.butterflykingdom.net" target="_blank" style="color:var(--gold-light)">butterflykingdom.net</a></span></div>
   </div>
   <div class="info-block">
-    <h4>Contacto</h4>
-    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.92 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.84 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l.98-.98a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span><a href="tel:+50689551717">+506 8955-1717</a></span></div>
+    <h4>Teléfonos</h4>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.92 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.84 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l.98-.98a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span><a href="tel:+50622886667">+506 2288-6667</a></span></div>
+    <div class="info-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.92 12a19.79 19.79 0 01-3.07-8.67A2 2 0 013.84 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l.98-.98a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span><a href="tel:+50689551717">+506 8955-1717 (WhatsApp)</a></span></div>
   </div>
-  <button class="btn-wa" onclick="openWhatsApp('Hola! Me gustaría obtener más información sobre Monarca Gastronomía.')">
+  <button class="btn-wa" onclick="openWhatsApp('Hola Monarca Gastronomía! Me gustaría obtener más información.')">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.5 2C6.262 2 2 6.262 2 11.5c0 1.86.518 3.6 1.42 5.079L2 22l5.567-1.394A9.45 9.45 0 0011.5 21c5.238 0 9.5-4.262 9.5-9.5S16.738 2 11.5 2z"/></svg>
     Escribinos por WhatsApp
   </button>
+  <div class="social-row">
+    <a class="social-btn" href="https://facebook.com/MonarcaGastronomia" target="_blank">📘 Facebook</a>
+    <a class="social-btn" href="https://instagram.com/monarca_gastronomia" target="_blank">📸 Instagram</a>
+  </div>
 </section>
 
 <nav>
@@ -332,21 +595,19 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
 <div id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://senxzuisgjrhcnvbtvcy.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_ToL3k4BIlB01j7DXVRGbRQ_VrSasECS';
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-const WA = '50689551717';
-
-const REWARDS = [
-  {pts:500, emoji:'☕', label:'Café de Especialidad', desc:'Un café cortesía de la casa'},
-  {pts:1000,emoji:'🥗', label:'Entrada Gratis',       desc:'Cualquier entrada del menú'},
-  {pts:1500,emoji:'🍷', label:'Copa de Vino',         desc:'Selección del sommelier'},
-  {pts:2500,emoji:'🎂', label:'Postre de Cumpleaños', desc:'En tu mes de cumpleaños'},
-  {pts:5000,emoji:'👑', label:'Cena para Dos',        desc:'Experiencia premium exclusiva'},
+const SUPABASE_URL='https://senxzuisgjrhcnvbtvcy.supabase.co';
+const SUPABASE_KEY='sb_publishable_ToL3k4BIlB01j7DXVRGbRQ_VrSasECS';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const WA='50689551717';
+const REWARDS=[
+  {pts:500,emoji:'☕',label:'Café Gratis',desc:'Un café de especialidad cortesía de la casa'},
+  {pts:1000,emoji:'🥗',label:'Entrada Gratis',desc:'Cualquier entrada del menú'},
+  {pts:1500,emoji:'🍷',label:'Copa de Vino',desc:'Selección del sommelier'},
+  {pts:2500,emoji:'🎂',label:'Postre de Cumpleaños',desc:'En tu mes de cumpleaños'},
+  {pts:5000,emoji:'👑',label:'Cena para Dos',desc:'Experiencia premium exclusiva'},
 ];
 const TIERS=[{min:0,label:'Mariposa Bronce',next:500},{min:500,label:'Mariposa Plata',next:1500},{min:1500,label:'Mariposa Oro',next:5000},{min:5000,label:'Mariposa Élite',next:null}];
-
 let loginMode=false;
 
 function goTo(id){
@@ -361,6 +622,8 @@ function switchCat(cat,el){
   document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('cat-'+cat).classList.add('active');
+  // scroll tab into view
+  el.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
 }
 function sendReserve(){
   const name=document.getElementById('res-name').value.trim();
@@ -371,11 +634,10 @@ function sendReserve(){
   if(!name||!date){showToast('Completá nombre y fecha',true);return;}
   const ds=new Date(date+'T12:00').toLocaleDateString('es-CR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   let msg=`Hola Monarca Gastronomía! 🦋\n\nReserva:\n👤 ${name}\n📅 ${ds}\n🕐 ${time}\n👥 ${people}`;
-  if(notes) msg+=`\n📝 ${notes}`;
+  if(notes)msg+=`\n📝 ${notes}`;
   openWhatsApp(msg);
 }
 function openWhatsApp(msg){window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');}
-
 function toggleLoginMode(){
   loginMode=!loginMode;
   document.getElementById('btn-register').textContent=loginMode?'Entrar a mi cuenta':'Registrarme';
@@ -383,7 +645,6 @@ function toggleLoginMode(){
   document.getElementById('loyalty-form-desc').textContent=loginMode?'Ingresá tu teléfono para acceder a tus puntos.':'Registrate con tu nombre y teléfono. Acumulá 100 puntos por cada visita.';
   document.getElementById('name-group').style.display=loginMode?'none':'block';
 }
-
 async function handleLoyaltySubmit(){
   const phone=document.getElementById('loyalty-phone-input').value.trim().replace(/\D/g,'');
   if(!phone||phone.length<8){showToast('Ingresá un teléfono válido',true);return;}
@@ -394,19 +655,17 @@ async function handleLoyaltySubmit(){
     await doRegister(name,phone);
   }
 }
-
 async function doRegister(name,phone){
   setLoading(true);
   const{data:ex}=await db.from('clientes').select('id').eq('telefono',phone).maybeSingle();
   if(ex){showToast('Ese teléfono ya está registrado. Iniciá sesión.',true);setLoading(false);return;}
   const{data,error}=await db.from('clientes').insert([{nombre:name,telefono:phone,puntos:100,visitas:1}]).select().single();
   setLoading(false);
-  if(error){showToast('Error al registrar. Verificá que la tabla existe.',true);console.error(error);return;}
+  if(error){showToast('Error al registrar. Verificá que la tabla existe en Supabase.',true);console.error(error);return;}
   localStorage.setItem('monarca_phone',phone);
   showToast(`¡Bienvenido/a ${name.split(' ')[0]}! +100 puntos 🦋`);
   renderCard(data);
 }
-
 async function doLogin(phone){
   setLoading(true);
   const{data,error}=await db.from('clientes').select('*').eq('telefono',phone).maybeSingle();
@@ -416,16 +675,14 @@ async function doLogin(phone){
   showToast(`¡Hola de nuevo, ${data.nombre.split(' ')[0]}! 🦋`);
   renderCard(data);
 }
-
 function logoutLoyalty(){
   localStorage.removeItem('monarca_phone');
   document.getElementById('loyalty-card').style.display='none';
   document.getElementById('loyalty-register').style.display='flex';
   document.getElementById('loyalty-name-input').value='';
   document.getElementById('loyalty-phone-input').value='';
-  if(loginMode) toggleLoginMode();
+  if(loginMode)toggleLoginMode();
 }
-
 function renderCard(data){
   document.getElementById('loyalty-register').style.display='none';
   document.getElementById('loyalty-card').style.display='flex';
@@ -450,33 +707,24 @@ function renderCard(data){
     return `<div class="reward-item ${earned?'earned':''}"><div class="reward-badge">${r.emoji}</div><div class="reward-info"><h4>${r.label}</h4><p>${r.desc}</p></div><div class="reward-pts">${earned?'✓ Canjeá':r.pts.toLocaleString()+' pts'}</div></div>`;
   }).join('');
 }
-
 function setLoading(on){
   const btn=document.getElementById('btn-register');
   btn.disabled=on;
   btn.innerHTML=on?'<span class="spinner"></span>Cargando…':(loginMode?'Entrar a mi cuenta':'Registrarme');
 }
-
-let toastTimer;
+let tt;
 function showToast(msg,isError=false){
   const t=document.getElementById('toast');
   t.textContent=msg;t.className='show'+(isError?' error':'');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.className='',3200);
+  clearTimeout(tt);tt=setTimeout(()=>t.className='',3200);
 }
-
 // Auto-login
 const savedPhone=localStorage.getItem('monarca_phone');
-if(savedPhone){
-  db.from('clientes').select('*').eq('telefono',savedPhone).maybeSingle().then(({data})=>{
-    if(data)renderCard(data);else localStorage.removeItem('monarca_phone');
-  });
-}
-
+if(savedPhone){db.from('clientes').select('*').eq('telefono',savedPhone).maybeSingle().then(({data})=>{if(data)renderCard(data);else localStorage.removeItem('monarca_phone');});}
 const today=new Date().toISOString().split('T')[0];
 document.getElementById('res-date').min=today;
 document.getElementById('res-date').value=today;
-setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove();},2600);
+setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove();},2800);
 </script>
 </body>
 </html>
