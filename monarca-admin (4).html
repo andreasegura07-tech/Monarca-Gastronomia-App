@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#080706">
+<title>Monarca · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── QR SCANNER (USB pistol) ──
+(function(){
+  let buffer = '';
+  let timer = null;
+
+  function initScanner(){
+    // Focus the hidden input to capture scanner input
+    const scanInput = document.getElementById('scan-input-hidden');
+    if(!scanInput) return;
+
+    // Keep focus on hidden input unless user clicks search or modal is open
+    document.addEventListener('click', function(e){
+      const modal = document.getElementById('modal-overlay');
+      const addModal = document.getElementById('add-modal-overlay');
+      const search = document.getElementById('search-input');
+      if(
+        modal.classList.contains('open') ||
+        addModal.classList.contains('open') ||
+        e.target === search ||
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'BUTTON'
+      ) return;
+      setTimeout(()=>scanInput.focus(), 50);
+    });
+
+    scanInput.addEventListener('keydown', function(e){
+      // Scanner sends Enter at end of data
+      if(e.key === 'Enter'){
+        const data = buffer.trim();
+        buffer = '';
+        clearTimeout(timer);
+        if(data) processScan(data);
+        return;
+      }
+      // Accumulate characters
+      if(e.key.length === 1){
+        buffer += e.key;
+        clearTimeout(timer);
+        // Auto-process after 100ms pause (safety net)
+        timer = setTimeout(()=>{
+          if(buffer.trim()) processScan(buffer.trim());
+          buffer = '';
+        }, 200);
+      }
+    });
+
+    // Also handle paste (some scanners paste directly)
+    scanInput.addEventListener('paste', function(e){
+      setTimeout(()=>{
+        const data = scanInput.value.trim();
+        scanInput.value = '';
+        buffer = '';
+        if(data) processScan(data);
+      }, 50);
+    });
+
+    scanInput.focus();
+  }
+
+  function processScan(data){
+    // Update UI
+    const dot = document.getElementById('scan-dot');
+    const statusText = document.getElementById('scan-status-text');
+    const bar = document.getElementById('scan-bar');
+    dot.classList.remove('ready');
+    dot.style.background = '#E8B86D';
+    bar.classList.add('active');
+    statusText.textContent = 'Procesando…';
+
+    // Extract phone — barcode sends plain number, QR sends URL
+    let phone = null;
+    const digits = data.replace(/\D/g,'');
+    if(digits.length >= 8 && digits.length <= 12){
+      // Plain phone number from barcode
+      phone = digits;
+    } else {
+      // Try URL format (QR fallback)
+      try {
+        const url = new URL(data);
+        phone = url.searchParams.get('cliente');
+        if(phone) phone = phone.replace(/\D/g,'');
+      } catch(e){}
+    }
+
+    if(!phone){
+      statusText.textContent = 'QR no reconocido. Intentá de nuevo.';
+      setTimeout(resetScanBar, 2000);
+      return;
+    }
+
+    // Search client
+    const found = allClients.find(c => c.telefono === phone || c.telefono === phone.replace(/^506/,''));
+    if(found){
+      statusText.textContent = '✓ Cliente: ' + found.nombre;
+      setTimeout(()=>{ resetScanBar(); openModal(found.id); }, 800);
+    } else {
+      // Try DB directly
+      db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({data: client})=>{
+        if(client){
+          if(!allClients.find(c=>c.id===client.id)) allClients.push(client);
+          statusText.textContent = '✓ Cliente: ' + client.nombre;
+          setTimeout(()=>{ resetScanBar(); openModal(client.id); }, 800);
+        } else {
+          statusText.textContent = 'Cliente no encontrado: ' + phone;
+          setTimeout(resetScanBar, 2500);
+        }
+      });
+    }
+  }
+
+  function resetScanBar(){
+    const dot = document.getElementById('scan-dot');
+    const statusText = document.getElementById('scan-status-text');
+    const bar = document.getElementById('scan-bar');
+    dot.classList.add('ready');
+    dot.style.background = '';
+    bar.classList.remove('active');
+    statusText.textContent = 'Apuntá la pistola al código de barras del cliente y disparar';
+    const scanInput = document.getElementById('scan-input-hidden');
+    if(scanInput) scanInput.focus();
+  }
+
+  window.initScanner = initScanner;
+  window.resetScanBar = resetScanBar;
+})();
+
+</script>
+<style>
+:root{
+  --gold:#C9963A;--gold-light:#E8B86D;--gold-dim:rgba(201,150,58,0.12);
+  --bg:#080706;--bg2:#0f0d0a;--bg3:#161310;--bg4:#1e1a14;
+  --cream:#F2EBD9;--cream-dim:rgba(242,235,217,0.5);--cream-faint:rgba(242,235,217,0.15);
+  --green:#4CAF7D;--red:#C0392B;--mono:'DM Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:var(--bg);color:var(--cream);font-family:'Jost',sans-serif;font-weight:300}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--gold-dim)}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(201,150,58,.1) 0%,transparent 70%)}
+.login-logo{text-align:center;margin-bottom:48px}
+.login-logo .brand{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--cream);line-height:.95}
+.login-logo .brand em{font-style:italic;color:var(--gold-light);display:block}
+.login-logo .badge{display:inline-block;margin-top:14px;padding:4px 14px;border:1px solid rgba(201,150,58,.3);border-radius:20px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold)}
+.login-box{width:100%;max-width:340px}
+.login-label{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:block}
+.login-box p{font-size:13px;color:var(--cream-dim);margin-bottom:20px;line-height:1.6}
+.pin-row{display:flex;gap:10px;margin-bottom:24px}
+.pin-dot{flex:1;height:56px;background:var(--bg3);border:1px solid rgba(201,150,58,.2);border-radius:2px;font-family:var(--mono);font-size:22px;color:var(--cream);text-align:center;outline:none;letter-spacing:.1em;transition:border-color .2s;-webkit-appearance:none}
+.pin-dot:focus{border-color:var(--gold)}
+.btn-login{width:100%;background:var(--gold);color:var(--bg);border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;padding:16px;cursor:pointer;transition:background .2s,transform .15s}
+.btn-login:active{background:var(--gold-light);transform:scale(.98)}
+.login-error{margin-top:14px;font-size:12px;color:var(--red);text-align:center;min-height:18px}
+
+/* APP */
+#app{display:none;min-height:100vh;flex-direction:column}
+.app-header{background:var(--bg2);border-bottom:1px solid rgba(201,150,58,.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
+.header-brand{display:flex;align-items:center;gap:12px}
+.hb-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--cream)}
+.hb-logo em{font-style:italic;color:var(--gold-light)}
+.hb-badge{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);padding:3px 9px;border-radius:10px;border:1px solid rgba(201,150,58,.2)}
+.btn-logout-top{background:none;border:1px solid rgba(255,255,255,.1);color:var(--cream-dim);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:7px 12px;border-radius:2px;cursor:pointer;transition:border-color .2s}
+.btn-logout-top:hover{border-color:rgba(201,150,58,.4);color:var(--gold)}
+.app-body{flex:1;padding:20px;max-width:900px;margin:0 auto;width:100%}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+@media(min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:var(--bg3);border:1px solid rgba(201,150,58,.12);border-radius:2px;padding:16px 18px;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);opacity:0;transition:opacity .3s}
+.stat-card:hover::after{opacity:1}
+.stat-label{font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.stat-value{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--cream);line-height:1}
+.stat-sub{font-size:11px;color:var(--cream-dim);margin-top:4px}
+
+/* SCAN ALERT */
+#scan-alert{display:none;background:rgba(201,150,58,.12);border:1px solid rgba(201,150,58,.4);border-radius:2px;padding:14px 18px;margin-bottom:18px;font-size:13px;color:var(--gold-light);align-items:center;gap:10px}
+#scan-alert.show{display:flex}
+#scan-alert svg{width:18px;height:18px;flex-shrink:0;stroke:var(--gold)}
+
+/* SEARCH */
+.action-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--gold);stroke-width:1.5;pointer-events:none}
+#search-input{width:100%;background:var(--bg3);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:14px;font-weight:300;padding:11px 14px 11px 38px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+#search-input:focus{border-color:var(--gold)}
+#search-input::placeholder{color:var(--cream-faint)}
+.btn-refresh{background:var(--bg3);border:1px solid rgba(201,150,58,.2);color:var(--cream-dim);padding:11px 16px;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-refresh svg{width:14px;height:14px;stroke-width:1.5;transition:transform .4s}
+.btn-refresh:active svg{transform:rotate(360deg)}
+.btn-refresh:hover{border-color:rgba(201,150,58,.4);color:var(--gold)}
+
+/* ADD CLIENT BTN */
+.btn-add-client{background:var(--gold-dim);border:1px solid rgba(201,150,58,.3);color:var(--gold);padding:11px 16px;border-radius:2px;cursor:pointer;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.btn-add-client:hover{background:var(--gold);color:var(--bg)}
+.btn-add-client svg{width:14px;height:14px;stroke-width:2}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid rgba(201,150,58,.1);border-radius:2px;overflow:hidden;margin-bottom:24px}
+.table-head{display:grid;grid-template-columns:1fr 110px 1fr 70px 110px 90px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid rgba(201,150,58,.1)}
+.th{font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.table-body{max-height:calc(100vh - 340px);overflow-y:auto}
+.client-row{display:grid;grid-template-columns:1fr 110px 1fr 70px 110px 90px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;transition:background .15s;cursor:pointer}
+.client-row:last-child{border-bottom:none}
+.client-row:hover{background:rgba(201,150,58,.05)}
+.client-row.selected{background:rgba(201,150,58,.1);border-left:2px solid var(--gold)}
+.cr-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--cream)}
+.cr-phone{font-family:var(--mono);font-size:12px;color:var(--cream-dim)}
+.cr-email{font-size:11px;color:var(--cream-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-pts{font-family:var(--mono);font-size:14px;color:var(--gold-light);font-weight:500}
+.cr-tier{font-size:10px;padding:3px 8px;border-radius:10px;border:1px solid rgba(201,150,58,.25);color:var(--gold);letter-spacing:.05em;white-space:nowrap;width:fit-content}
+.cr-date{font-family:var(--mono);font-size:11px;color:var(--cream-faint)}
+.cr-visits{font-family:var(--mono);font-size:13px;color:var(--cream-dim);text-align:center}
+@media(max-width:599px){
+  .table-head{display:none}
+  .client-row{grid-template-columns:1fr 90px;gap:4px}
+  .client-row>div:nth-child(n+3){display:none}
+  .client-row .cr-pts{display:block}
+}
+.empty-state{padding:40px;text-align:center;color:var(--cream-dim);font-size:13px}
+.empty-state div{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--cream-faint);margin-bottom:8px}
+.loading-row{padding:30px;text-align:center;color:var(--cream-dim);font-size:13px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(201,150,58,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
+#modal-overlay.open{display:flex}
+@media(min-width:500px){#modal-overlay{align-items:center}}
+.modal{background:var(--bg2);border:1px solid rgba(201,150,58,.2);border-radius:4px 4px 0 0;padding:0;width:100%;max-width:480px;animation:slideUp .25s ease;max-height:92vh;overflow-y:auto}
+@media(min-width:500px){.modal{border-radius:4px;animation:fadeIn .2s ease}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+
+/* Modal tabs */
+.modal-tabs{display:flex;border-bottom:1px solid rgba(201,150,58,.15)}
+.modal-tab{flex:1;padding:14px;text-align:center;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-dim);cursor:pointer;transition:all .2s;border:none;background:none}
+.modal-tab.active{color:var(--gold);border-bottom:2px solid var(--gold)}
+
+.modal-panel{display:none;padding:22px 22px 18px}
+.modal-panel.active{display:block}
+
+.modal-client-header{margin-bottom:18px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--cream);margin-bottom:2px}
+.modal-title em{font-style:italic;color:var(--gold-light)}
+.modal-subtitle{font-size:13px;color:var(--cream-dim)}
+.modal-info-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+.modal-info-row:last-of-type{border-bottom:none}
+.modal-info-row span:first-child{color:var(--cream-dim)}
+.val{font-family:var(--mono);color:var(--gold-light)}
+.modal-divider{height:1px;background:rgba(201,150,58,.12);margin:16px 0}
+.modal-section-title{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.tier-badge-modal{display:inline-block;padding:3px 10px;border:1px solid rgba(201,150,58,.3);border-radius:10px;font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase}
+
+/* Factura form in modal */
+.factura-form{display:flex;flex-direction:column;gap:14px}
+.factura-form label{font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:block}
+.factura-form input{width:100%;background:var(--bg4);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:15px;font-weight:300;padding:12px 14px;outline:none;-webkit-appearance:none;transition:border-color .2s}
+.factura-form input:focus{border-color:var(--gold)}
+.pts-calc{background:rgba(201,150,58,.1);border:1px solid rgba(201,150,58,.2);border-radius:2px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.pts-calc-label{font-size:12px;color:var(--cream-dim)}
+.pts-calc-value{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold);line-height:1}
+.pts-calc-sub{font-size:10px;color:var(--cream-dim);text-align:right}
+
+/* Historial */
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.hist-item:last-child{border-bottom:none}
+.hist-num{color:var(--cream-dim);font-family:var(--mono)}
+.hist-pts{color:var(--gold)}
+.hist-empty{font-size:12px;color:var(--cream-faint);text-align:center;padding:12px 0}
+
+/* Manual edit form */
+.edit-form{display:flex;flex-direction:column;gap:14px}
+.edit-form label{font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:block}
+.edit-form input{width:100%;background:var(--bg4);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:15px;font-weight:300;padding:12px 14px;outline:none;-webkit-appearance:none;transition:border-color .2s}
+.edit-form input:focus{border-color:var(--gold)}
+
+/* Pts preset */
+.pts-row{display:flex;gap:8px;margin-bottom:14px}
+.pts-preset{flex:1;background:var(--bg4);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream-dim);font-family:var(--mono);font-size:13px;padding:10px 6px;cursor:pointer;text-align:center;transition:all .2s}
+.pts-preset:hover,.pts-preset.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+
+.modal-btns{display:flex;gap:10px;margin-top:4px}
+.btn-confirm{flex:1;background:var(--gold);color:var(--bg);border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:14px;cursor:pointer;transition:background .2s,transform .15s}
+.btn-confirm:active{background:var(--gold-light);transform:scale(.98)}
+.btn-confirm:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-cancel{flex:1;background:none;color:var(--cream-dim);border:1px solid rgba(255,255,255,.12);border-radius:2px;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:13px;cursor:pointer;transition:border-color .2s}
+.btn-cancel:hover{border-color:rgba(201,150,58,.3);color:var(--cream)}
+.btn-danger{background:rgba(192,57,43,.15);color:#e74c3c;border:1px solid rgba(192,57,43,.25);border-radius:2px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:all .2s;margin-top:8px;width:100%}
+.btn-danger:hover{background:rgba(192,57,43,.25)}
+
+/* Add client modal */
+#add-modal-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+#add-modal-overlay.open{display:flex}
+.add-modal{background:var(--bg2);border:1px solid rgba(201,150,58,.2);border-radius:4px;padding:24px;width:100%;max-width:400px;animation:fadeIn .2s ease}
+.add-modal h3{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--cream);margin-bottom:16px}
+.add-modal h3 em{font-style:italic;color:var(--gold-light)}
+
+/* Toast */
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--bg);padding:11px 22px;border-radius:2px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:400;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.error{background:#8B3A2A;color:var(--cream)}
+#toast.success{background:#2d6a4f;color:#fff}
+
+.scan-bar{background:var(--bg3);border:1px solid rgba(201,150,58,.25);border-radius:2px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px}
+.scan-bar svg{width:22px;height:22px;flex-shrink:0;color:var(--gold);stroke-width:1.4}
+.scan-bar-text{flex:1}
+.scan-bar-text h4{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--cream)}
+.scan-bar-text p{font-size:12px;color:var(--cream-dim);margin-top:2px}
+.scan-bar.active{border-color:var(--gold);background:rgba(201,150,58,.08)}
+.scan-dot{width:10px;height:10px;border-radius:50%;background:var(--cream-faint);flex-shrink:0;transition:background .3s}
+.scan-dot.ready{background:var(--gold);box-shadow:0 0 8px rgba(201,150,58,.6);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#scan-input-hidden{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">
+    <div class="brand">Monarca<em>Gastronomía</em></div>
+    <div class="badge">Panel Administrativo</div>
+  </div>
+  <div class="login-box">
+    <span class="login-label">Código de acceso (4 dígitos)</span>
+    <p>Ingresá el PIN para acceder al panel de lealtad.</p>
+    <div class="pin-row">
+      <input class="pin-dot" type="password" maxlength="1" inputmode="numeric" id="p1">
+      <input class="pin-dot" type="password" maxlength="1" inputmode="numeric" id="p2">
+      <input class="pin-dot" type="password" maxlength="1" inputmode="numeric" id="p3">
+      <input class="pin-dot" type="password" maxlength="1" inputmode="numeric" id="p4">
+    </div>
+    <button class="btn-login" onclick="checkPin()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-header">
+    <div class="header-brand">
+      <span class="hb-logo">Monarca<em> Admin</em></span>
+      <span class="hb-badge">Lealtad</span>
+    </div>
+    <button class="btn-logout-top" onclick="doLogout()">Salir</button>
+  </div>
+
+  <div class="app-body">
+
+    <!-- Scan alert -->
+    <div id="scan-alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l3 3"/></svg>
+      <span id="scan-alert-text">Cargando cliente...</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Clientes</div><div class="stat-value" id="stat-clientes">—</div><div class="stat-sub">registrados</div></div>
+      <div class="stat-card"><div class="stat-label">Puntos Totales</div><div class="stat-value" id="stat-puntos">—</div><div class="stat-sub">acumulados</div></div>
+      <div class="stat-card"><div class="stat-label">Visitas</div><div class="stat-value" id="stat-visitas">—</div><div class="stat-sub">registradas</div></div>
+      <div class="stat-card"><div class="stat-label">Nivel Oro+</div><div class="stat-value" id="stat-oro">—</div><div class="stat-sub">miembros premium</div></div>
+    </div>
+
+
+    <!-- QR SCAN BAR -->
+    <div class="scan-bar" id="scan-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 4h4v-4m-7 4h3"/></svg>
+      <div class="scan-bar-text">
+        <h4>Lector de código de barras activo</h4>
+        <p id="scan-status-text">Apuntá la pistola al código de barras del cliente y disparar</p>
+      </div>
+      <div class="scan-dot ready" id="scan-dot"></div>
+    </div>
+    <input type="text" id="scan-input-hidden" autocomplete="off">
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Buscar por nombre, teléfono o correo…" oninput="filterClients()">
+      </div>
+      <button class="btn-refresh" onclick="loadClients()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        Actualizar
+      </button>
+      <button class="btn-add-client" onclick="openAddClient()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Agregar Cliente
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="th">Cliente</div>
+        <div class="th">Teléfono</div>
+        <div class="th">Correo</div>
+        <div class="th" style="text-align:center">Visitas</div>
+        <div class="th">Puntos · Nivel</div>
+        <div class="th">Registro</div>
+      </div>
+      <div class="table-body" id="table-body">
+        <div class="loading-row"><span class="spinner"></span>Cargando clientes…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('factura')">🧾 Registrar Factura</button>
+      <button class="modal-tab" onclick="switchTab('info')">👤 Info Cliente</button>
+      <button class="modal-tab" onclick="switchTab('puntos')">⭐ Puntos Manuales</button>
+    </div>
+
+    <!-- TAB: FACTURA -->
+    <div class="modal-panel active" id="tab-factura">
+      <div class="modal-client-header">
+        <div class="modal-title" id="modal-client-name">—</div>
+        <div class="modal-subtitle" id="modal-client-phone-f">—</div>
+      </div>
+      <div class="factura-form">
+        <div>
+          <label>Número de Factura</label>
+          <input type="text" id="f-numero" placeholder="ej. 00123">
+        </div>
+        <div>
+          <label>Total de la Factura (₡)</label>
+          <input type="number" id="f-total" placeholder="ej. 15000" min="1000" oninput="calcFacturaPts()">
+        </div>
+        <div class="pts-calc" id="pts-calc-box">
+          <div>
+            <div class="pts-calc-label">Puntos a ganar</div>
+            <div class="pts-calc-sub">10 pts por cada ₡1.000</div>
+          </div>
+          <div>
+            <div class="pts-calc-value" id="f-pts-calc">0</div>
+          </div>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+          <button class="btn-confirm" id="btn-reg-factura" onclick="registrarFactura()">Registrar y Asignar Puntos</button>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="modal-section-title">Últimas Facturas</div>
+        <div id="modal-historial"><div class="hist-empty">Sin registros</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: INFO -->
+    <div class="modal-panel" id="tab-info">
+      <div class="modal-client-header">
+        <div class="modal-title" id="modal-client-name2">—</div>
+        <div class="modal-subtitle">Información del cliente</div>
+      </div>
+      <div class="modal-info-row"><span>Teléfono</span><span class="val" id="modal-phone2">—</span></div>
+      <div class="modal-info-row"><span>Correo</span><span class="val" id="modal-correo" style="font-size:12px">—</span></div>
+      <div class="modal-info-row"><span>Puntos actuales</span><span class="val" id="modal-pts">0</span></div>
+      <div class="modal-info-row"><span>Nivel</span><span id="modal-tier-badge" class="tier-badge-modal">Bronce</span></div>
+      <div class="modal-info-row"><span>Visitas</span><span class="val" id="modal-visits">0</span></div>
+      <div class="modal-info-row"><span>Miembro desde</span><span class="val" id="modal-date">—</span></div>
+      <div class="modal-divider"></div>
+      <div class="modal-section-title">Editar datos</div>
+      <div class="edit-form">
+        <div><label>Nombre</label><input type="text" id="edit-nombre" placeholder="Nombre completo"></div>
+        <div><label>Teléfono</label><input type="tel" id="edit-telefono" placeholder="88888888"></div>
+        <div><label>Correo</label><input type="email" id="edit-correo" placeholder="correo@ejemplo.com"></div>
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+          <button class="btn-confirm" onclick="saveClientEdit()">Guardar Cambios</button>
+        </div>
+      </div>
+      <button class="btn-danger" onclick="confirmReset()">Reiniciar puntos a 0</button>
+    </div>
+
+    <!-- TAB: PUNTOS MANUALES -->
+    <div class="modal-panel" id="tab-puntos">
+      <div class="modal-client-header">
+        <div class="modal-title" id="modal-client-name3">—</div>
+        <div class="modal-subtitle">Agregar puntos manualmente</div>
+      </div>
+      <div class="modal-section-title">Seleccioná o ingresá la cantidad</div>
+      <div class="pts-row">
+        <div class="pts-preset" onclick="setPreset(50)">+50</div>
+        <div class="pts-preset" onclick="setPreset(100)">+100</div>
+        <div class="pts-preset" onclick="setPreset(200)">+200</div>
+        <div class="pts-preset" onclick="setPreset(500)">+500</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:8px">Personalizado</label>
+        <input type="number" id="pts-custom" placeholder="ej. 350" min="1" max="9999" oninput="clearPreset()" style="width:100%;background:var(--bg4);border:1px solid rgba(201,150,58,.2);border-radius:2px;color:var(--cream);font-family:'Jost',sans-serif;font-size:15px;padding:12px 14px;outline:none;-webkit-appearance:none">
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-confirm" id="btn-confirm-pts" onclick="addPoints()">Agregar Puntos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLIENT MODAL -->
+<div id="add-modal-overlay" onclick="closeAddModal(event)">
+  <div class="add-modal">
+    <h3>Nuevo<em> Cliente</em></h3>
+    <div class="edit-form">
+      <div><label>Nombre completo</label><input type="text" id="new-nombre" placeholder="Nombre y apellido"></div>
+      <div><label>Teléfono (WhatsApp)</label><input type="tel" id="new-telefono" placeholder="88888888" maxlength="12"></div>
+      <div><label>Correo electrónico</label><input type="email" id="new-correo" placeholder="correo@ejemplo.com"></div>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn-confirm" id="btn-add-confirm" onclick="saveNewClient()">Registrar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://senxzuisgjrhcnvbtvcy.supabase.co';
+const SUPABASE_KEY='sb_publishable_ToL3k4BIlB01j7DXVRGbRQ_VrSasECS';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const ADMIN_PIN='1234';
+const TIERS=[{min:0,label:'Bronce',next:500},{min:500,label:'Plata',next:1500},{min:1500,label:'Oro',next:5000},{min:5000,label:'Élite',next:null}];
+
+let allClients=[];
+let selectedClient=null;
+let activeTab='factura';
+
+// ── PIN ──
+const pinInputs=[...document.querySelectorAll('.pin-dot')];
+pinInputs.forEach((inp,i)=>{
+  inp.addEventListener('input',()=>{
+    inp.value=inp.value.replace(/\D/g,'');
+    if(inp.value&&i<3)pinInputs[i+1].focus();
+    if(i===3&&inp.value)checkPin();
+  });
+  inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)pinInputs[i-1].focus();});
+});
+
+function checkPin(){
+  const pin=pinInputs.map(i=>i.value).join('');
+  if(pin.length<4){showLoginError('Ingresá los 4 dígitos');return;}
+  if(pin===ADMIN_PIN){
+    sessionStorage.setItem('monarca_admin','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    loadClients().then(()=>{ checkScanParam(); initScanner(); });
+  }else{
+    showLoginError('PIN incorrecto');
+    pinInputs.forEach(i=>i.value='');
+    pinInputs[0].focus();
+  }
+}
+function showLoginError(msg){
+  document.getElementById('login-error').textContent=msg;
+  setTimeout(()=>document.getElementById('login-error').textContent='',2500);
+}
+function doLogout(){
+  sessionStorage.removeItem('monarca_admin');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  pinInputs.forEach(i=>i.value='');
+  pinInputs[0].focus();
+}
+
+// ── QR SCAN: check URL param ──
+function checkScanParam(){
+  const params=new URLSearchParams(window.location.search);
+  let tel=params.get('cliente');
+  if(!tel)return;
+
+  const alert=document.getElementById('scan-alert');
+  const alertText=document.getElementById('scan-alert-text');
+  alert.classList.add('show');
+  alertText.textContent='Buscando cliente ' + tel + '...';
+  // Find client
+  const found=allClients.find(c=>c.telefono===decodeURIComponent(tel));
+  if(found){
+    alertText.textContent='Cliente encontrado: ' + found.nombre;
+    setTimeout(()=>{
+      alert.classList.remove('show');
+      openModal(found.id);
+    },1200);
+  } else {
+    // Try fetching directly
+    db.from('clientes').select('*').eq('telefono',decodeURIComponent(tel)).maybeSingle().then(({data})=>{
+      if(data){
+        alertText.textContent='Cliente: ' + data.nombre;
+        if(!allClients.find(c=>c.id===data.id))allClients.push(data);
+        renderStats(allClients);
+        renderTable(allClients);
+        setTimeout(()=>{alert.classList.remove('show');openModal(data.id);},1200);
+      }else{
+        alertText.textContent='Cliente no encontrado. ¿Registrarlo?';
+        setTimeout(()=>alert.classList.remove('show'),3000);
+      }
+    });
+  }
+  // Clean URL without reload
+  window.history.replaceState({},'',window.location.pathname);
+}
+
+// ── LOAD ──
+async function loadClients(){
+  document.getElementById('table-body').innerHTML='<div class="loading-row"><span class="spinner"></span>Cargando…</div>';
+  const{data,error}=await db.from('clientes').select('*').order('puntos',{ascending:false});
+  if(error){showToast('Error al cargar clientes',true);console.error(error);return;}
+  allClients=data||[];
+  renderStats(allClients);
+  renderTable(allClients);
+}
+
+function renderStats(clients){
+  document.getElementById('stat-clientes').textContent=clients.length;
+  document.getElementById('stat-puntos').textContent=clients.reduce((a,c)=>a+c.puntos,0).toLocaleString();
+  document.getElementById('stat-visitas').textContent=clients.reduce((a,c)=>a+(c.visitas||0),0).toLocaleString();
+  document.getElementById('stat-oro').textContent=clients.filter(c=>c.puntos>=1500).length;
+}
+
+function filterClients(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  if(!q){renderTable(allClients);return;}
+  renderTable(allClients.filter(c=>
+    c.nombre.toLowerCase().includes(q)||
+    c.telefono.includes(q)||
+    (c.correo&&c.correo.toLowerCase().includes(q))
+  ));
+}
+
+function renderTable(clients){
+  const tbody=document.getElementById('table-body');
+  if(!clients.length){tbody.innerHTML='<div class="empty-state"><div>🦋</div>Sin resultados</div>';return;}
+  tbody.innerHTML=clients.map(c=>{
+    const tier=[...TIERS].reverse().find(t=>c.puntos>=t.min);
+    const date=c.created_at?new Date(c.created_at).toLocaleDateString('es-CR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+    return `<div class="client-row" onclick="openModal('${c.id}')">
+      <div><div class="cr-name">${c.nombre}</div></div>
+      <div class="cr-phone">${c.telefono}</div>
+      <div class="cr-email">${c.correo||'—'}</div>
+      <div class="cr-visits" style="text-align:center">${c.visitas||1}</div>
+      <div><div class="cr-pts">${c.puntos.toLocaleString()} pts</div><div class="cr-tier" style="margin-top:4px">${tier.label}</div></div>
+      <div class="cr-date">${date}</div>
+    </div>`;
+  }).join('');
+}
+
+function getTier(pts){return[...TIERS].reverse().find(t=>pts>=t.min);}
+
+// ── TABS ──
+function switchTab(tab){
+  activeTab=tab;
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// ── MODAL ──
+function openModal(id){
+  selectedClient=allClients.find(c=>c.id===id);
+  if(!selectedClient)return;
+  const c=selectedClient;
+  const tier=getTier(c.puntos);
+  const date=c.created_at?new Date(c.created_at).toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'}):'—';
+
+  // Factura tab
+  document.getElementById('modal-client-name').textContent=c.nombre;
+  document.getElementById('modal-client-phone-f').textContent='+506 '+c.telefono;
+  document.getElementById('f-numero').value='';
+  document.getElementById('f-total').value='';
+  document.getElementById('f-pts-calc').textContent='0';
+
+  // Info tab
+  document.getElementById('modal-client-name2').textContent=c.nombre;
+  document.getElementById('modal-phone2').textContent='+506 '+c.telefono;
+  document.getElementById('modal-correo').textContent=c.correo||'No registrado';
+  document.getElementById('modal-pts').textContent=c.puntos.toLocaleString()+' pts';
+  document.getElementById('modal-tier-badge').textContent='Mariposa '+tier.label;
+  document.getElementById('modal-visits').textContent=c.visitas||1;
+  document.getElementById('modal-date').textContent=date;
+  document.getElementById('edit-nombre').value=c.nombre;
+  document.getElementById('edit-telefono').value=c.telefono;
+  document.getElementById('edit-correo').value=c.correo||'';
+
+  // Puntos tab
+  document.getElementById('modal-client-name3').textContent=c.nombre;
+  document.getElementById('pts-custom').value='';
+  clearPreset();
+
+  // Reset to factura tab
+  document.querySelectorAll('.modal-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  document.querySelectorAll('.modal-panel').forEach((p,i)=>{p.classList.toggle('active',i===0);});
+  activeTab='factura';
+
+  loadModalHistorial(c.id);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  selectedClient=null;
+}
+
+// ── FACTURA ──
+function calcFacturaPts(){
+  const total=parseInt(document.getElementById('f-total').value)||0;
+  document.getElementById('f-pts-calc').textContent=(Math.floor(total/1000)*10).toLocaleString();
+}
+
+async function registrarFactura(){
+  if(!selectedClient)return;
+  const numero=document.getElementById('f-numero').value.trim();
+  const total=parseInt(document.getElementById('f-total').value)||0;
+  if(!numero){showToast('Ingresá el número de factura',true);return;}
+  if(total<1000){showToast('El total mínimo es ₡1.000',true);return;}
+  const pts=Math.floor(total/1000)*10;
+  const btn=document.getElementById('btn-reg-factura');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verificando…';
+
+  const{data:ex}=await db.from('facturas').select('id').eq('numero',numero).maybeSingle();
+  if(ex){showToast('Esa factura ya fue registrada.',true);btn.disabled=false;btn.textContent='Registrar y Asignar Puntos';return;}
+
+  const{error:fe}=await db.from('facturas').insert([{numero,cliente_id:selectedClient.id,total,puntos:pts}]);
+  if(fe){showToast('Error al registrar factura.',true);btn.disabled=false;btn.textContent='Registrar y Asignar Puntos';return;}
+
+  const newPts=selectedClient.puntos+pts;
+  const newVisits=(selectedClient.visitas||1)+1;
+  const{data:updated,error:ue}=await db.from('clientes').update({puntos:newPts,visitas:newVisits}).eq('id',selectedClient.id).select().single();
+  btn.disabled=false;btn.textContent='Registrar y Asignar Puntos';
+  if(ue){showToast('Error actualizando puntos.',true);return;}
+
+  // Update local
+  const idx=allClients.findIndex(c=>c.id===selectedClient.id);
+  if(idx>=0)allClients[idx]=updated;
+  selectedClient=updated;
+
+  document.getElementById('f-numero').value='';
+  document.getElementById('f-total').value='';
+  document.getElementById('f-pts-calc').textContent='0';
+  showToast('+'+pts+' puntos · Factura #'+numero+' ✓','success');
+  renderStats(allClients);renderTable(allClients);
+  loadModalHistorial(selectedClient.id);
+  // Update info tab
+  document.getElementById('modal-pts').textContent=updated.puntos.toLocaleString()+' pts';
+  const tier=getTier(updated.puntos);
+  document.getElementById('modal-tier-badge').textContent='Mariposa '+tier.label;
+}
+
+async function loadModalHistorial(clientId){
+  const{data}=await db.from('facturas').select('numero,total,puntos,created_at').eq('cliente_id',clientId).order('created_at',{ascending:false}).limit(6);
+  const el=document.getElementById('modal-historial');
+  if(!data||!data.length){el.innerHTML='<div class="hist-empty">Sin facturas registradas</div>';return;}
+  el.innerHTML=data.map(f=>{
+    const fecha=new Date(f.created_at).toLocaleDateString('es-CR',{day:'2-digit',month:'2-digit'});
+    return `<div class="hist-item"><span class="hist-num">#${f.numero} · ${fecha}</span><span style="color:var(--cream-dim)">₡${f.total.toLocaleString()}</span><span class="hist-pts">+${f.puntos} pts</span></div>`;
+  }).join('');
+}
+
+// ── MANUAL POINTS ──
+function setPreset(val){
+  document.getElementById('pts-custom').value=val;
+  document.querySelectorAll('.pts-preset').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+function clearPreset(){document.querySelectorAll('.pts-preset').forEach(b=>b.classList.remove('active'));}
+
+async function addPoints(){
+  if(!selectedClient)return;
+  const val=parseInt(document.getElementById('pts-custom').value);
+  if(!val||val<1){showToast('Ingresá una cantidad válida',true);return;}
+  const btn=document.getElementById('btn-confirm-pts');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Guardando…';
+  const newPts=selectedClient.puntos+val;
+  const{data:updated,error}=await db.from('clientes').update({puntos:newPts}).eq('id',selectedClient.id).select().single();
+  btn.disabled=false;btn.textContent='Agregar Puntos';
+  if(error){showToast('Error al actualizar',true);return;}
+  const idx=allClients.findIndex(c=>c.id===selectedClient.id);
+  if(idx>=0)allClients[idx]=updated;
+  selectedClient=updated;
+  showToast('+'+val+' pts a '+selectedClient.nombre.split(' ')[0]+' ✓','success');
+  renderStats(allClients);renderTable(allClients);
+  document.getElementById('modal-pts').textContent=updated.puntos.toLocaleString()+' pts';
+}
+
+// ── EDIT CLIENT ──
+async function saveClientEdit(){
+  if(!selectedClient)return;
+  const nombre=document.getElementById('edit-nombre').value.trim();
+  const telefono=document.getElementById('edit-telefono').value.trim().replace(/\D/g,'');
+  const correo=document.getElementById('edit-correo').value.trim();
+  if(!nombre||!telefono){showToast('Nombre y teléfono son obligatorios',true);return;}
+  const{data:updated,error}=await db.from('clientes').update({nombre,telefono,correo}).eq('id',selectedClient.id).select().single();
+  if(error){showToast('Error al guardar cambios',true);return;}
+  const idx=allClients.findIndex(c=>c.id===selectedClient.id);
+  if(idx>=0)allClients[idx]=updated;
+  selectedClient=updated;
+  showToast('Datos actualizados ✓','success');
+  renderTable(allClients);
+  document.getElementById('modal-client-name').textContent=updated.nombre;
+  document.getElementById('modal-client-name2').textContent=updated.nombre;
+  document.getElementById('modal-correo').textContent=updated.correo||'No registrado';
+}
+
+async function confirmReset(){
+  if(!selectedClient)return;
+  if(!confirm('¿Reiniciar puntos de '+selectedClient.nombre+' a 0?'))return;
+  const{error}=await db.from('clientes').update({puntos:0}).eq('id',selectedClient.id);
+  if(error){showToast('Error',true);return;}
+  showToast('Puntos reiniciados ✓');
+  document.getElementById('modal-overlay').classList.remove('open');
+  loadClients();
+}
+
+// ── ADD CLIENT ──
+function openAddClient(){document.getElementById('add-modal-overlay').classList.add('open');}
+function closeAddModal(e){
+  if(e&&e.target!==document.getElementById('add-modal-overlay'))return;
+  document.getElementById('add-modal-overlay').classList.remove('open');
+  document.getElementById('new-nombre').value='';
+  document.getElementById('new-telefono').value='';
+  document.getElementById('new-correo').value='';
+}
+
+async function saveNewClient(){
+  const nombre=document.getElementById('new-nombre').value.trim();
+  const telefono=document.getElementById('new-telefono').value.trim().replace(/\D/g,'');
+  const correo=document.getElementById('new-correo').value.trim();
+  if(!nombre||!telefono){showToast('Nombre y teléfono son obligatorios',true);return;}
+  const btn=document.getElementById('btn-add-confirm');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Guardando…';
+
+  const{data:ex}=await db.from('clientes').select('id').eq('telefono',telefono).maybeSingle();
+  if(ex){showToast('Ese teléfono ya existe',true);btn.disabled=false;btn.textContent='Registrar Cliente';return;}
+
+  const{data,error}=await db.from('clientes').insert([{nombre,telefono,correo:correo||null,puntos:0,visitas:0}]).select().single();
+  btn.disabled=false;btn.textContent='Registrar Cliente';
+  if(error){showToast('Error al registrar',true);console.error(error);return;}
+
+  showToast(nombre.split(' ')[0]+' registrado ✓','success');
+  closeAddModal();
+  loadClients();
+}
+
+// ── TOAST ──
+let tt;
+function showToast(msg,type=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=type==='success'?'show success':type===true?'show error':'show';
+  clearTimeout(tt);tt=setTimeout(()=>t.className='',3200);
+}
+
+// ── INIT ──
+if(sessionStorage.getItem('monarca_admin')==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadClients().then(()=>{ checkScanParam(); initScanner(); });
+}else{
+  setTimeout(()=>pinInputs[0].focus(),300);
+}
+
+// ── QR SCANNER (USB pistol) ──
+(function(){
+  let buffer = '';
+  let timer = null;
+
+  function initScanner(){
+    // Focus the hidden input to capture scanner input
+    const scanInput = document.getElementById('scan-input-hidden');
+    if(!scanInput) return;
+
+    // Keep focus on hidden input unless user clicks search or modal is open
+    document.addEventListener('click', function(e){
+      const modal = document.getElementById('modal-overlay');
+      const addModal = document.getElementById('add-modal-overlay');
+      const search = document.getElementById('search-input');
+      if(
+        modal.classList.contains('open') ||
+        addModal.classList.contains('open') ||
+        e.target === search ||
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'BUTTON'
+      ) return;
+      setTimeout(()=>scanInput.focus(), 50);
+    });
+
+    scanInput.addEventListener('keydown', function(e){
+      // Scanner sends Enter at end of data
+      if(e.key === 'Enter'){
+        const data = buffer.trim();
+        buffer = '';
+        clearTimeout(timer);
+        if(data) processScan(data);
+        return;
+      }
+      // Accumulate characters
+      if(e.key.length === 1){
+        buffer += e.key;
+        clearTimeout(timer);
+        // Auto-process after 100ms pause (safety net)
+        timer = setTimeout(()=>{
+          if(buffer.trim()) processScan(buffer.trim());
+          buffer = '';
+        }, 200);
+      }
+    });
+
+    // Also handle paste (some scanners paste directly)
+    scanInput.addEventListener('paste', function(e){
+      setTimeout(()=>{
+        const data = scanInput.value.trim();
+        scanInput.value = '';
+        buffer = '';
+        if(data) processScan(data);
+      }, 50);
+    });
+
+    scanInput.focus();
+  }
+
+  function processScan(data){
+    // Update UI
+    const dot = document.getElementById('scan-dot');
+    const statusText = document.getElementById('scan-status-text');
+    const bar = document.getElementById('scan-bar');
+    dot.classList.remove('ready');
+    dot.style.background = '#E8B86D';
+    bar.classList.add('active');
+    statusText.textContent = 'Procesando…';
+
+    // Extract phone — barcode sends plain number, QR sends URL
+    let phone = null;
+    const digits = data.replace(/\D/g,'');
+    if(digits.length >= 8 && digits.length <= 12){
+      // Plain phone number from barcode
+      phone = digits;
+    } else {
+      // Try URL format (QR fallback)
+      try {
+        const url = new URL(data);
+        phone = url.searchParams.get('cliente');
+        if(phone) phone = phone.replace(/\D/g,'');
+      } catch(e){}
+    }
+
+    if(!phone){
+      statusText.textContent = 'QR no reconocido. Intentá de nuevo.';
+      setTimeout(resetScanBar, 2000);
+      return;
+    }
+
+    // Search client
+    const found = allClients.find(c => c.telefono === phone || c.telefono === phone.replace(/^506/,''));
+    if(found){
+      statusText.textContent = '✓ Cliente: ' + found.nombre;
+      setTimeout(()=>{ resetScanBar(); openModal(found.id); }, 800);
+    } else {
+      // Try DB directly
+      db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({data: client})=>{
+        if(client){
+          if(!allClients.find(c=>c.id===client.id)) allClients.push(client);
+          statusText.textContent = '✓ Cliente: ' + client.nombre;
+          setTimeout(()=>{ resetScanBar(); openModal(client.id); }, 800);
+        } else {
+          statusText.textContent = 'Cliente no encontrado: ' + phone;
+          setTimeout(resetScanBar, 2500);
+        }
+      });
+    }
+  }
+
+  function resetScanBar(){
+    const dot = document.getElementById('scan-dot');
+    const statusText = document.getElementById('scan-status-text');
+    const bar = document.getElementById('scan-bar');
+    dot.classList.add('ready');
+    dot.style.background = '';
+    bar.classList.remove('active');
+    statusText.textContent = 'Apuntá la pistola al código de barras del cliente y disparar';
+    const scanInput = document.getElementById('scan-input-hidden');
+    if(scanInput) scanInput.focus();
+  }
+
+  window.initScanner = initScanner;
+  window.resetScanBar = resetScanBar;
+})();
+
+</script>
+</body>
+</html>
