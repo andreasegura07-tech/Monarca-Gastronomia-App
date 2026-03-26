@@ -8,111 +8,111 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── QR SCANNER (USB pistol) ──
+// ── BARCODE SCANNER (USB pistol) ──
+// USB scanners act as keyboards — they type the scanned data + Enter
+// This captures ALL keyboard input globally, regardless of focus
 (function(){
   let buffer = '';
-  let timer = null;
+  let lastKeyTime = 0;
+  const SCANNER_SPEED = 50; // ms between chars — scanners type faster than humans
 
-  function initScanner(){
-    // Focus the hidden input to capture scanner input
-    const scanInput = document.getElementById('scan-input-hidden');
-    if(!scanInput) return;
+  document.addEventListener('keydown', function(e){
+    // Ignore if typing in a real input (search, form fields in modal)
+    const tag = document.activeElement.tagName;
+    const inModal = document.getElementById('modal-overlay').classList.contains('open');
+    const inAddModal = document.getElementById('add-modal-overlay').classList.contains('open');
 
-    // Keep focus on hidden input unless user clicks search or modal is open
-    document.addEventListener('click', function(e){
-      const modal = document.getElementById('modal-overlay');
-      const addModal = document.getElementById('add-modal-overlay');
-      const search = document.getElementById('search-input');
-      if(
-        modal.classList.contains('open') ||
-        addModal.classList.contains('open') ||
-        e.target === search ||
-        e.target.tagName === 'INPUT' ||
-        e.target.tagName === 'BUTTON'
-      ) return;
-      setTimeout(()=>scanInput.focus(), 50);
-    });
+    if(inModal || inAddModal) return; // Don't intercept when modal is open
+    if(tag === 'INPUT' && document.activeElement.id !== 'scan-input-hidden' && document.activeElement.id === 'search-input') return;
 
-    scanInput.addEventListener('keydown', function(e){
-      // Scanner sends Enter at end of data
-      if(e.key === 'Enter'){
-        const data = buffer.trim();
+    const now = Date.now();
+    const timeDiff = now - lastKeyTime;
+    lastKeyTime = now;
+
+    if(e.key === 'Enter'){
+      if(buffer.length >= 6){
+        const captured = buffer.trim();
         buffer = '';
-        clearTimeout(timer);
-        if(data) processScan(data);
-        return;
-      }
-      // Accumulate characters
-      if(e.key.length === 1){
-        buffer += e.key;
-        clearTimeout(timer);
-        // Auto-process after 100ms pause (safety net)
-        timer = setTimeout(()=>{
-          if(buffer.trim()) processScan(buffer.trim());
-          buffer = '';
-        }, 200);
-      }
-    });
-
-    // Also handle paste (some scanners paste directly)
-    scanInput.addEventListener('paste', function(e){
-      setTimeout(()=>{
-        const data = scanInput.value.trim();
-        scanInput.value = '';
+        processScan(captured);
+      } else {
         buffer = '';
-        if(data) processScan(data);
-      }, 50);
-    });
+      }
+      e.preventDefault();
+      return;
+    }
 
-    scanInput.focus();
-  }
+    // Only accumulate printable characters
+    if(e.key.length === 1){
+      // If gap is too long, it's human typing not scanner — reset
+      if(timeDiff > 300 && buffer.length > 0){
+        buffer = '';
+      }
+      buffer += e.key;
+    }
+  });
 
   function processScan(data){
-    // Update UI
     const dot = document.getElementById('scan-dot');
     const statusText = document.getElementById('scan-status-text');
     const bar = document.getElementById('scan-bar');
     dot.classList.remove('ready');
     dot.style.background = '#E8B86D';
     bar.classList.add('active');
-    statusText.textContent = 'Procesando…';
+    statusText.textContent = 'Buscando cliente…';
 
-    // Extract phone — barcode sends plain number, QR sends URL
+    // Extract digits — barcode contains phone number
+    const digits = data.replace(/\D/g, '');
     let phone = null;
-    const digits = data.replace(/\D/g,'');
+
     if(digits.length >= 8 && digits.length <= 12){
-      // Plain phone number from barcode
       phone = digits;
     } else {
-      // Try URL format (QR fallback)
+      // Try URL format as fallback
       try {
         const url = new URL(data);
-        phone = url.searchParams.get('cliente');
-        if(phone) phone = phone.replace(/\D/g,'');
+        const p = url.searchParams.get('cliente');
+        if(p) phone = p.replace(/\D/g,'');
       } catch(e){}
     }
 
+    console.log('Scanned:', data, '→ phone:', phone);
+
     if(!phone){
-      statusText.textContent = 'QR no reconocido. Intentá de nuevo.';
-      setTimeout(resetScanBar, 2000);
+      statusText.textContent = '✗ Código no reconocido: ' + data;
+      setTimeout(resetScanBar, 2500);
       return;
     }
 
-    // Search client
-    const found = allClients.find(c => c.telefono === phone || c.telefono === phone.replace(/^506/,''));
+    // Search in loaded clients first
+    const found = allClients.find(c =>
+      c.telefono === phone ||
+      c.telefono === phone.slice(-8) ||
+      phone.endsWith(c.telefono)
+    );
+
     if(found){
-      statusText.textContent = '✓ Cliente: ' + found.nombre;
-      setTimeout(()=>{ resetScanBar(); openModal(found.id); }, 800);
+      statusText.textContent = '✓ ' + found.nombre;
+      setTimeout(function(){ resetScanBar(); openModal(found.id); }, 700);
     } else {
-      // Try DB directly
-      db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({data: client})=>{
+      // Try DB
+      db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(function({data: client}){
         if(client){
           if(!allClients.find(c=>c.id===client.id)) allClients.push(client);
-          statusText.textContent = '✓ Cliente: ' + client.nombre;
-          setTimeout(()=>{ resetScanBar(); openModal(client.id); }, 800);
+          statusText.textContent = '✓ ' + client.nombre;
+          setTimeout(function(){ resetScanBar(); openModal(client.id); }, 700);
         } else {
-          statusText.textContent = 'Cliente no encontrado: ' + phone;
-          setTimeout(resetScanBar, 2500);
+          // Try last 8 digits
+          const short = phone.slice(-8);
+          db.from('clientes').select('*').eq('telefono', short).maybeSingle().then(function({data: c2}){
+            if(c2){
+              if(!allClients.find(c=>c.id===c2.id)) allClients.push(c2);
+              statusText.textContent = '✓ ' + c2.nombre;
+              setTimeout(function(){ resetScanBar(); openModal(c2.id); }, 700);
+            } else {
+              statusText.textContent = '✗ Cliente no encontrado (' + phone + ')';
+              setTimeout(resetScanBar, 3000);
+            }
+          });
         }
       });
     }
@@ -122,17 +122,138 @@
     const dot = document.getElementById('scan-dot');
     const statusText = document.getElementById('scan-status-text');
     const bar = document.getElementById('scan-bar');
+    if(!dot||!statusText||!bar) return;
     dot.classList.add('ready');
     dot.style.background = '';
     bar.classList.remove('active');
     statusText.textContent = 'Apuntá la pistola al código de barras del cliente y disparar';
-    const scanInput = document.getElementById('scan-input-hidden');
-    if(scanInput) scanInput.focus();
   }
 
-  window.initScanner = initScanner;
   window.resetScanBar = resetScanBar;
+  window.initScanner = function(){ resetScanBar(); }; // just reset UI
 })();
+
+
+// ══════════════════════════════════════════
+// ESCÁNER DE CÓDIGO DE BARRAS (USB / HID)
+// La pistola actúa como teclado: escribe rápido + Enter
+// ══════════════════════════════════════════
+function startScanner() {
+  let buffer = '';
+  let lastKeyTime = 0;
+  const SCANNER_SPEED = 50; // ms entre teclas — la pistola escribe muy rápido
+
+  document.addEventListener('keydown', function(e) {
+    // Ignorar si el usuario está escribiendo en un input/textarea
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    const isTyping = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+
+    const now = Date.now();
+
+    // Si pasó mucho tiempo desde la última tecla, reiniciar buffer
+    if (now - lastKeyTime > 500 && buffer.length > 0) {
+      buffer = '';
+    }
+    lastKeyTime = now;
+
+    if (e.key === 'Enter') {
+      const scanned = buffer.trim();
+      buffer = '';
+      if (scanned.length >= 6) {
+        procesarCodigo(scanned);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    // Solo acumular si viene de escáner (muy rápido) o si no está en un input
+    if (!isTyping || (now - lastKeyTime < SCANNER_SPEED)) {
+      if (e.key.length === 1) {
+        buffer += e.key;
+      }
+    }
+  });
+
+  console.log('✓ Escáner listo');
+  updateScanStatus('listo');
+}
+
+function procesarCodigo(codigo) {
+  console.log('Código escaneado:', codigo);
+  updateScanStatus('buscando', codigo);
+
+  // Limpiar — solo números
+  const phone = codigo.replace(/\D/g, '');
+  if (!phone || phone.length < 7) {
+    updateScanStatus('error', 'Código no válido: ' + codigo);
+    return;
+  }
+
+  // Buscar en lista local primero
+  const found = allClients.find(c =>
+    c.telefono === phone ||
+    c.telefono === phone.slice(-8) ||
+    phone.endsWith(c.telefono)
+  );
+
+  if (found) {
+    updateScanStatus('ok', found.nombre);
+    setTimeout(() => { resetScanBar(); openModal(found.id); }, 600);
+  } else {
+    // Buscar en Supabase
+    db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({ data, error }) => {
+      if (data) {
+        if (!allClients.find(c => c.id === data.id)) allClients.push(data);
+        renderStats(allClients);
+        renderTable(allClients);
+        updateScanStatus('ok', data.nombre);
+        setTimeout(() => { resetScanBar(); openModal(data.id); }, 600);
+      } else {
+        // Try last 8 digits
+        const short = phone.slice(-8);
+        db.from('clientes').select('*').eq('telefono', short).maybeSingle().then(({ data: d2 }) => {
+          if (d2) {
+            if (!allClients.find(c => c.id === d2.id)) allClients.push(d2);
+            updateScanStatus('ok', d2.nombre);
+            setTimeout(() => { resetScanBar(); openModal(d2.id); }, 600);
+          } else {
+            updateScanStatus('error', 'No encontrado: ' + phone);
+          }
+        });
+      }
+    });
+  }
+}
+
+function updateScanStatus(state, msg) {
+  const bar = document.getElementById('scan-bar');
+  const dot = document.getElementById('scan-dot');
+  const text = document.getElementById('scan-status-text');
+  if (!bar || !dot || !text) return;
+
+  if (state === 'listo') {
+    bar.classList.remove('active');
+    dot.style.background = '';
+    dot.classList.add('ready');
+    text.textContent = 'Listo — apuntá la pistola al código de barras del cliente';
+  } else if (state === 'buscando') {
+    bar.classList.add('active');
+    dot.classList.remove('ready');
+    dot.style.background = '#E8B86D';
+    text.textContent = 'Buscando: ' + (msg || '...');
+  } else if (state === 'ok') {
+    dot.style.background = '#4CAF7D';
+    text.textContent = '✓ ' + (msg || 'Cliente encontrado');
+  } else if (state === 'error') {
+    dot.style.background = '#C0392B';
+    text.textContent = '✗ ' + (msg || 'Error');
+    setTimeout(() => updateScanStatus('listo'), 2500);
+  }
+}
+
+function resetScanBar() {
+  updateScanStatus('listo');
+}
 
 </script>
 <style>
@@ -321,7 +442,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--cream);font-family:'J
 .scan-dot{width:10px;height:10px;border-radius:50%;background:var(--cream-faint);flex-shrink:0;transition:background .3s}
 .scan-dot.ready{background:var(--gold);box-shadow:0 0 8px rgba(201,150,58,.6);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-#scan-input-hidden{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+
 </style>
 </head>
 <body>
@@ -382,7 +503,6 @@ html,body{min-height:100%;background:var(--bg);color:var(--cream);font-family:'J
       </div>
       <div class="scan-dot ready" id="scan-dot"></div>
     </div>
-    <input type="text" id="scan-input-hidden" autocomplete="off">
 
     <!-- Action bar -->
     <div class="action-bar">
@@ -560,7 +680,7 @@ function checkPin(){
     sessionStorage.setItem('monarca_admin','1');
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
-    loadClients().then(()=>{ checkScanParam(); initScanner(); });
+    loadClients().then(()=>{ checkScanParam(); startScanner(); });
   }else{
     showLoginError('PIN incorrecto');
     pinInputs.forEach(i=>i.value='');
@@ -871,136 +991,134 @@ function showToast(msg,type=false){
 if(sessionStorage.getItem('monarca_admin')==='1'){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='flex';
-  loadClients().then(()=>{ checkScanParam(); initScanner(); });
+  loadClients().then(()=>{ checkScanParam(); startScanner(); });
 }else{
   setTimeout(()=>pinInputs[0].focus(),300);
 }
 
-// ── QR SCANNER (USB pistol) ──
-(function(){
+
+
+
+// ══════════════════════════════════════════
+// ESCÁNER DE CÓDIGO DE BARRAS (USB / HID)
+// La pistola actúa como teclado: escribe rápido + Enter
+// ══════════════════════════════════════════
+function startScanner() {
   let buffer = '';
-  let timer = null;
+  let lastKeyTime = 0;
+  const SCANNER_SPEED = 50; // ms entre teclas — la pistola escribe muy rápido
 
-  function initScanner(){
-    // Focus the hidden input to capture scanner input
-    const scanInput = document.getElementById('scan-input-hidden');
-    if(!scanInput) return;
+  document.addEventListener('keydown', function(e) {
+    // Ignorar si el usuario está escribiendo en un input/textarea
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    const isTyping = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
 
-    // Keep focus on hidden input unless user clicks search or modal is open
-    document.addEventListener('click', function(e){
-      const modal = document.getElementById('modal-overlay');
-      const addModal = document.getElementById('add-modal-overlay');
-      const search = document.getElementById('search-input');
-      if(
-        modal.classList.contains('open') ||
-        addModal.classList.contains('open') ||
-        e.target === search ||
-        e.target.tagName === 'INPUT' ||
-        e.target.tagName === 'BUTTON'
-      ) return;
-      setTimeout(()=>scanInput.focus(), 50);
-    });
+    const now = Date.now();
 
-    scanInput.addEventListener('keydown', function(e){
-      // Scanner sends Enter at end of data
-      if(e.key === 'Enter'){
-        const data = buffer.trim();
-        buffer = '';
-        clearTimeout(timer);
-        if(data) processScan(data);
-        return;
-      }
-      // Accumulate characters
-      if(e.key.length === 1){
-        buffer += e.key;
-        clearTimeout(timer);
-        // Auto-process after 100ms pause (safety net)
-        timer = setTimeout(()=>{
-          if(buffer.trim()) processScan(buffer.trim());
-          buffer = '';
-        }, 200);
-      }
-    });
-
-    // Also handle paste (some scanners paste directly)
-    scanInput.addEventListener('paste', function(e){
-      setTimeout(()=>{
-        const data = scanInput.value.trim();
-        scanInput.value = '';
-        buffer = '';
-        if(data) processScan(data);
-      }, 50);
-    });
-
-    scanInput.focus();
-  }
-
-  function processScan(data){
-    // Update UI
-    const dot = document.getElementById('scan-dot');
-    const statusText = document.getElementById('scan-status-text');
-    const bar = document.getElementById('scan-bar');
-    dot.classList.remove('ready');
-    dot.style.background = '#E8B86D';
-    bar.classList.add('active');
-    statusText.textContent = 'Procesando…';
-
-    // Extract phone — barcode sends plain number, QR sends URL
-    let phone = null;
-    const digits = data.replace(/\D/g,'');
-    if(digits.length >= 8 && digits.length <= 12){
-      // Plain phone number from barcode
-      phone = digits;
-    } else {
-      // Try URL format (QR fallback)
-      try {
-        const url = new URL(data);
-        phone = url.searchParams.get('cliente');
-        if(phone) phone = phone.replace(/\D/g,'');
-      } catch(e){}
+    // Si pasó mucho tiempo desde la última tecla, reiniciar buffer
+    if (now - lastKeyTime > 500 && buffer.length > 0) {
+      buffer = '';
     }
+    lastKeyTime = now;
 
-    if(!phone){
-      statusText.textContent = 'QR no reconocido. Intentá de nuevo.';
-      setTimeout(resetScanBar, 2000);
+    if (e.key === 'Enter') {
+      const scanned = buffer.trim();
+      buffer = '';
+      if (scanned.length >= 6) {
+        procesarCodigo(scanned);
+        e.preventDefault();
+      }
       return;
     }
 
-    // Search client
-    const found = allClients.find(c => c.telefono === phone || c.telefono === phone.replace(/^506/,''));
-    if(found){
-      statusText.textContent = '✓ Cliente: ' + found.nombre;
-      setTimeout(()=>{ resetScanBar(); openModal(found.id); }, 800);
-    } else {
-      // Try DB directly
-      db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({data: client})=>{
-        if(client){
-          if(!allClients.find(c=>c.id===client.id)) allClients.push(client);
-          statusText.textContent = '✓ Cliente: ' + client.nombre;
-          setTimeout(()=>{ resetScanBar(); openModal(client.id); }, 800);
-        } else {
-          statusText.textContent = 'Cliente no encontrado: ' + phone;
-          setTimeout(resetScanBar, 2500);
-        }
-      });
+    // Solo acumular si viene de escáner (muy rápido) o si no está en un input
+    if (!isTyping || (now - lastKeyTime < SCANNER_SPEED)) {
+      if (e.key.length === 1) {
+        buffer += e.key;
+      }
     }
+  });
+
+  console.log('✓ Escáner listo');
+  updateScanStatus('listo');
+}
+
+function procesarCodigo(codigo) {
+  console.log('Código escaneado:', codigo);
+  updateScanStatus('buscando', codigo);
+
+  // Limpiar — solo números
+  const phone = codigo.replace(/\D/g, '');
+  if (!phone || phone.length < 7) {
+    updateScanStatus('error', 'Código no válido: ' + codigo);
+    return;
   }
 
-  function resetScanBar(){
-    const dot = document.getElementById('scan-dot');
-    const statusText = document.getElementById('scan-status-text');
-    const bar = document.getElementById('scan-bar');
-    dot.classList.add('ready');
-    dot.style.background = '';
+  // Buscar en lista local primero
+  const found = allClients.find(c =>
+    c.telefono === phone ||
+    c.telefono === phone.slice(-8) ||
+    phone.endsWith(c.telefono)
+  );
+
+  if (found) {
+    updateScanStatus('ok', found.nombre);
+    setTimeout(() => { resetScanBar(); openModal(found.id); }, 600);
+  } else {
+    // Buscar en Supabase
+    db.from('clientes').select('*').eq('telefono', phone).maybeSingle().then(({ data, error }) => {
+      if (data) {
+        if (!allClients.find(c => c.id === data.id)) allClients.push(data);
+        renderStats(allClients);
+        renderTable(allClients);
+        updateScanStatus('ok', data.nombre);
+        setTimeout(() => { resetScanBar(); openModal(data.id); }, 600);
+      } else {
+        // Try last 8 digits
+        const short = phone.slice(-8);
+        db.from('clientes').select('*').eq('telefono', short).maybeSingle().then(({ data: d2 }) => {
+          if (d2) {
+            if (!allClients.find(c => c.id === d2.id)) allClients.push(d2);
+            updateScanStatus('ok', d2.nombre);
+            setTimeout(() => { resetScanBar(); openModal(d2.id); }, 600);
+          } else {
+            updateScanStatus('error', 'No encontrado: ' + phone);
+          }
+        });
+      }
+    });
+  }
+}
+
+function updateScanStatus(state, msg) {
+  const bar = document.getElementById('scan-bar');
+  const dot = document.getElementById('scan-dot');
+  const text = document.getElementById('scan-status-text');
+  if (!bar || !dot || !text) return;
+
+  if (state === 'listo') {
     bar.classList.remove('active');
-    statusText.textContent = 'Apuntá la pistola al código de barras del cliente y disparar';
-    const scanInput = document.getElementById('scan-input-hidden');
-    if(scanInput) scanInput.focus();
+    dot.style.background = '';
+    dot.classList.add('ready');
+    text.textContent = 'Listo — apuntá la pistola al código de barras del cliente';
+  } else if (state === 'buscando') {
+    bar.classList.add('active');
+    dot.classList.remove('ready');
+    dot.style.background = '#E8B86D';
+    text.textContent = 'Buscando: ' + (msg || '...');
+  } else if (state === 'ok') {
+    dot.style.background = '#4CAF7D';
+    text.textContent = '✓ ' + (msg || 'Cliente encontrado');
+  } else if (state === 'error') {
+    dot.style.background = '#C0392B';
+    text.textContent = '✗ ' + (msg || 'Error');
+    setTimeout(() => updateScanStatus('listo'), 2500);
   }
+}
 
-  window.initScanner = initScanner;
-  window.resetScanBar = resetScanBar;
-})();
+function resetScanBar() {
+  updateScanStatus('listo');
+}
 
 </script>
 </body>
