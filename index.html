@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js">
 
 
 async function loadHistorial() {
@@ -196,11 +196,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
 
 
 
-.qr-box{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:16px;text-align:center}
-.qr-box h4{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--cream);margin-bottom:4px}
-.qr-box p{font-size:13px;color:var(--cream-dim);margin-bottom:14px;line-height:1.5}
-.qr-canvas-wrap{background:white;border-radius:4px;padding:10px;display:inline-block}
-.qr-hint{font-size:12px;color:var(--cream-dim);margin-top:10px}
+.qr-box{background:var(--bg3);border:1px solid rgba(201,150,58,.15);border-radius:2px;padding:18px;text-align:center}
+.qr-box h4{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream);margin-bottom:4px}
+.qr-box p{font-size:14px;color:var(--cream-dim);margin-bottom:14px;line-height:1.5}
+.qr-canvas-wrap{background:white;border-radius:4px;padding:12px 16px;display:inline-block;width:100%;box-sizing:border-box}
+.qr-canvas-wrap svg{width:100%;height:auto;display:block}
+.qr-hint{font-size:13px;color:var(--cream-dim);margin-top:10px;letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -547,10 +548,10 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
     <div class="rewards-list" id="rewards-list"></div>
 
     <div class="qr-box">
-      <h4>Mi Código QR</h4>
+      <h4>Mi Código de Cliente</h4>
       <p>Mostráselo al cajero al momento de pagar para acumular tus puntos.</p>
-      <div class="qr-canvas-wrap"><div id="qr-container"></div></div>
-      <div class="qr-hint">El cajero lo escanea y registra tus puntos</div>
+      <div class="qr-canvas-wrap"><svg id="barcode-svg"></svg></div>
+      <div class="qr-hint" id="barcode-num"></div>
     </div>
     <button class="btn-logout" onclick="logoutLoyalty()">Cerrar sesión</button>
   </div>
@@ -717,22 +718,27 @@ function renderCard(data){
     const earned=pts>=r.pts;
     return `<div class="reward-item ${earned?'earned':''}"><div class="reward-badge">${r.emoji}</div><div class="reward-info"><h4>${r.label}</h4><p>${r.desc}</p></div><div class="reward-pts">${earned?'✓ Canjeá':r.pts.toLocaleString()+' pts'}</div></div>`;
   }).join('');
-  // Generate QR code in browser
+  // Generate barcode (Code 128) in browser
   setTimeout(function(){
-    const qrContainer = document.getElementById('qr-container');
-    if(qrContainer && data.telefono && typeof QRCode !== 'undefined'){
-      qrContainer.innerHTML = '';
-      const adminUrl = 'https://andreasegura07-tech.github.io/Monarca-Gastronomia-App/monarca-admin.html?cliente=' + encodeURIComponent(data.telefono);
-      new QRCode(qrContainer, {
-        text: adminUrl,
-        width: 200,
-        height: 200,
-        colorDark: '#0d0b08',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+    const svg = document.getElementById('barcode-svg');
+    const numEl = document.getElementById('barcode-num');
+    if(!svg || !data.telefono) return;
+    const code = data.telefono;
+    if(typeof JsBarcode !== 'undefined'){
+      try {
+        JsBarcode(svg, code, {
+          format: 'CODE128',
+          lineColor: '#0d0b08',
+          background: '#ffffff',
+          width: 2.5,
+          height: 70,
+          displayValue: false,
+          margin: 8
+        });
+        if(numEl) numEl.textContent = 'Código: ' + code;
+      } catch(e){ console.log('Barcode error:', e); }
     }
-  }, 100);
+  }, 300);
 }
 
 function setLoading(on){
