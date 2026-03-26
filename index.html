@@ -705,7 +705,7 @@ function renderCard(data){
     const earned=pts>=r.pts;
     return `<div class="reward-item ${earned?'earned':''}"><div class="reward-badge">${r.emoji}</div><div class="reward-info"><h4>${r.label}</h4><p>${r.desc}</p></div><div class="reward-pts">${earned?'✓ Canjeá':r.pts.toLocaleString()+' pts'}</div></div>`;
   }).join('');
-  // Generate barcode (Code 39 - funciona con cualquier pistola)
+  // Generate barcode EAN-13 (formato que lee la pistola)
   var phone = data.telefono.replace(/\D/g,'');
   var svg = document.getElementById('barcode-svg');
   var numEl = document.getElementById('barcode-num');
@@ -715,8 +715,10 @@ function renderCard(data){
       svg.style.display = 'block';
       if(fallback) fallback.style.display = 'none';
       try {
-        JsBarcode(svg, phone, {
-          format: 'CODE39',
+        // EAN-13 necesita exactamente 12 dígitos (el 13° lo calcula solo)
+        var ean12 = phone.padStart(12, '0').slice(-12);
+        JsBarcode(svg, ean12, {
+          format: 'EAN13',
           lineColor: '#000000',
           background: '#ffffff',
           width: 2.2,

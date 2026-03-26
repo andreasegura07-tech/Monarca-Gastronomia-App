@@ -183,16 +183,20 @@ function procesarCodigo(codigo) {
   updateScanStatus('buscando', codigo);
 
   // Limpiar — solo números
-  const phone = codigo.replace(/\D/g, '');
-  if (!phone || phone.length < 7) {
+  const raw = codigo.replace(/\D/g, '');
+  if (!raw || raw.length < 7) {
     updateScanStatus('error', 'Código no válido: ' + codigo);
     return;
   }
+  // EAN-13 rellena con ceros — extraer el teléfono quitando ceros iniciales
+  const phone = raw.replace(/^0+/, '') || raw;
 
-  // Buscar en lista local primero
+  // Buscar en lista local con varias estrategias
   const found = allClients.find(c =>
     c.telefono === phone ||
-    c.telefono === phone.slice(-8) ||
+    c.telefono === raw ||
+    c.telefono === raw.slice(-8) ||
+    raw.endsWith(c.telefono) ||
     phone.endsWith(c.telefono)
   );
 
@@ -1048,16 +1052,20 @@ function procesarCodigo(codigo) {
   updateScanStatus('buscando', codigo);
 
   // Limpiar — solo números
-  const phone = codigo.replace(/\D/g, '');
-  if (!phone || phone.length < 7) {
+  const raw = codigo.replace(/\D/g, '');
+  if (!raw || raw.length < 7) {
     updateScanStatus('error', 'Código no válido: ' + codigo);
     return;
   }
+  // EAN-13 rellena con ceros — extraer el teléfono quitando ceros iniciales
+  const phone = raw.replace(/^0+/, '') || raw;
 
-  // Buscar en lista local primero
+  // Buscar en lista local con varias estrategias
   const found = allClients.find(c =>
     c.telefono === phone ||
-    c.telefono === phone.slice(-8) ||
+    c.telefono === raw ||
+    c.telefono === raw.slice(-8) ||
+    raw.endsWith(c.telefono) ||
     phone.endsWith(c.telefono)
   );
 
