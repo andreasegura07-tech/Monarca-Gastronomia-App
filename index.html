@@ -14,6 +14,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
 
+<script>
 async function loadHistorial() {
   if (!currentUser) return;
   const { data } = await db.from('facturas')
@@ -31,7 +32,6 @@ async function loadHistorial() {
     return '<div class="historial-item"><span class="h-num">#' + f.numero + ' · ' + fecha + '</span><span style="color:var(--cream-dim)">₡' + f.total.toLocaleString() + '</span><span class="h-pts">+' + f.puntos + ' pts</span></div>';
   }).join('');
 }
-
 </script>
 <style>
 :root{--gold:#C9963A;--gold-light:#E8B86D;--gold-dim:rgba(201,150,58,0.13);--bg:#0d0b08;--bg3:#1a1710;--cream:#F2EBD9;--cream-dim:rgba(242,235,217,0.55);--cream-faint:rgba(242,235,217,0.18);--nav-h:68px}
@@ -200,7 +200,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) 
 .qr-box h4{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream);margin-bottom:4px}
 .qr-box p{font-size:14px;color:var(--cream-dim);margin-bottom:14px;line-height:1.5}
 .qr-canvas-wrap{background:white;border-radius:4px;padding:12px;display:block;width:100%;box-sizing:border-box}
-#barcode-svg{width:100%;height:auto;display:block}
+#barcode-svg{width:100%;max-width:280px;height:auto;display:block;margin:0 auto}
 
 .qr-hint{font-size:13px;color:var(--cream-dim);margin-top:10px;letter-spacing:.05em}
 </style>
